@@ -10,7 +10,7 @@ from numpy import random
 
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_imshow, non_max_suppression, apply_classifier, \
-    scale_coords, xyxy2xywh, strip_optimizer, set_logging, increment_path
+    scale_coords, xyxy2xywh, xywh2xyxy, strip_optimizer, set_logging, increment_path
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 
@@ -72,7 +72,7 @@ def attempt_load(weights, map_location=None):
             setattr(model, k, getattr(model[-1], k))
         return model  # return ensemble
 
-def detect(source="inference/images", weights="./YoloLib/yolov7.pt", view_img=False, save_txt=True, nosave=False, imgsz=640, trace=False, classify=False, save_img=False):
+def detect(source="input_image.jpeg", weights="./YoloLib/yolov7.pt", view_img=False, save_txt=True, nosave=False, imgsz=640, trace=False, classify=False, save_img=False):
     print("in detect function")
     if __name__ == "__main__":
         source, weights, view_img, save_txt, imgsz, trace, classify = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace, opt.classify
@@ -151,6 +151,9 @@ def detect(source="inference/images", weights="./YoloLib/yolov7.pt", view_img=Fa
     old_img_b = 1
 
     t0 = time.time()
+
+    boxCords = []
+
     for path, img, im0s, vid_cap in dataset:
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -175,8 +178,6 @@ def detect(source="inference/images", weights="./YoloLib/yolov7.pt", view_img=Fa
         # Apply NMS
         pred = non_max_suppression(pred, opt.conf_thres, opt.iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
         t3 = time_synchronized()
-
-        boxCords = []
 
         # Apply Classifier
         if classify:
@@ -206,9 +207,10 @@ def detect(source="inference/images", weights="./YoloLib/yolov7.pt", view_img=Fa
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
+                        print(f"before conversion: {xyxy}")
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        print(f"xywh: {xywh}")
-                        boxCords.append(*xywh)
+                        print(f"after conversion: {xywh}")
+                        boxCords.append(torch.tensor(xyxy))
                         line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
                         with open(txt_path + '.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
