@@ -2,16 +2,11 @@ import torch
 import cv2
 import numpy as np
 
-#model = torch.load("DWPoseLib/dw-ll_ucoco_384.pth")
-
 from mmpose.apis import inference_topdown, init_model
 from mmpose.utils import register_all_modules
 
 register_all_modules()
 
-#config_file = 'DWPoseLib\cspnext-l_udp_8xb64-210e_coco-wholebody-256x192.py'
-#config_file = "DWPoseLib/rtmpose-l_8xb64-270e_ubody-wholebody-256x192.py"
-#config_file = "DWPoseLib/rtmpose-l_8xb64-270e_coco-ubody-wholebody-256x192.py"
 config_file = "DWPoseLib/rtmpose-m_8xb64-270e_coco-wholebody-256x192.py"
 
 checkpoint_file = 'DWPoseLib/rtmpose-m_simcc-coco-wholebody_pt-aic-coco_270e-256x192-cd5e845c_20230123.pth'
