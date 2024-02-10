@@ -5,6 +5,7 @@ import numpy as np
 import timeit
 
 DEBUG = False
+MODEL = None
 
 def fitToImage(xyxy):
 
@@ -64,59 +65,90 @@ def LoadMediaPath(path, stack):
 
         stack.append(cv2.imread(path))
 
-inputPaths = [
-    "Cohoon, Start, Freestyle, 01_08_2023 08_59_22_5.avi",
-    "input_image.jpeg"
-]
+def YOLOSegment(imagePaths, paddingSize=10):
 
-imageStack = []
+    if MODEL == None:
+        return "Error: Model Not Loaded"
 
-for path in inputPaths:
-    LoadMediaPath(path, imageStack)
+    imageStack = []
 
-model = YOLO("yolov8n.pt")
+    for path in imagePaths:
+        LoadMediaPath(path, imageStack)
 
-results = model(imageStack)
+    results = MODEL(imageStack)
 
-results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp), result.orig_shape] for result in results]
+    results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp), result.orig_shape] for result in results]
 
-print(f"results: {results}")
+    print(f"results: {results}")
 
-results = padBox(results, 100)
+    results = padBox(results, paddingSize)
 
-results = fitToImage(results)
+    results = fitToImage(results)
 
-image = imageStack[0]
+    return results
 
-shape = np.shape(image)
+if __name__ == "__main__":
 
-results = padBox(results, 100)
+    inputPaths = [
+        "Cohoon, Start, Freestyle, 01_08_2023 08_59_22_5.avi",
+        "input_image.jpeg"
+    ]
 
-results = fitToImage(results)
+    imageStack = []
 
-x, y, x1, y1 = results[0][0][0]
+    for path in inputPaths:
+        LoadMediaPath(path, imageStack)
 
-print(f"xyxy of showcase image and first box: x {x} | y {y} | x1 {x1} | y1 {y1}")
+    model = YOLO("yolov8n.pt")
 
-cv2.rectangle(image, (x, y), (x1, y1), (255, 0, 0), 5)
+    # Currently runs all paths on the same call to the model meaning results are merged
+    # Mybe seperate so multiple images or videos can be returned when finished instead of when all are finished
+    results = model(imageStack)
 
-cv2.imshow("test", cv2.resize(image, ((shape[1] // 3), (shape[0] // 3))))
+    results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp), result.orig_shape] for result in results]
 
-image = imageStack[-1]
+    print(f"results: {results}")
 
-shape = np.shape(image)
+    results = padBox(results, 100)
 
-results = padBox(results, 100)
+    results = fitToImage(results)
 
-results = fitToImage(results)
+    image = imageStack[0]
 
-x, y, x1, y1 = results[-1][0][0]
+    shape = np.shape(image)
 
-print(f"xyxy of showcase image and first box: x {x} | y {y} | x1 {x1} | y1 {y1}")
+    results = padBox(results, 100)
 
-cv2.rectangle(image, (x, y), (x1, y1), (255, 0, 0), 5)
+    results = fitToImage(results)
 
-cv2.imshow("test1", cv2.resize(image, ((shape[0] // 6), (shape[1] // 6))))
+    x, y, x1, y1 = results[0][0][0]
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    print(f"xyxy of showcase image and first box: x {x} | y {y} | x1 {x1} | y1 {y1}")
+
+    cv2.rectangle(image, (x, y), (x1, y1), (255, 0, 0), 5)
+
+    cv2.imshow("test", cv2.resize(image, ((shape[1] // 3), (shape[0] // 3))))
+
+    image = imageStack[-1]
+
+    shape = np.shape(image)
+
+    results = padBox(results, 100)
+
+    results = fitToImage(results)
+
+    x, y, x1, y1 = results[-1][0][0]
+
+    print(f"xyxy of showcase image and first box: x {x} | y {y} | x1 {x1} | y1 {y1}")
+
+    cv2.rectangle(image, (x, y), (x1, y1), (255, 0, 0), 5)
+
+    cv2.imshow("test1", cv2.resize(image, ((shape[0] // 6), (shape[1] // 6))))
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+else:
+    
+    MODEL = YOLO("yolov8n.pt")
+
