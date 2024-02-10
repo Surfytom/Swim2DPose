@@ -1,8 +1,7 @@
-import torch
 import cv2
 from ultralytics import YOLO
+from ultralytics import settings
 import numpy as np
-import timeit
 
 DEBUG = False
 MODEL = None
@@ -88,6 +87,8 @@ def YOLOSegment(imagePaths, paddingSize=10):
     return results
 
 if __name__ == "__main__":
+
+    settings.update({"weights_dir": "Models"})
 
     inputPaths = [
         "Cohoon, Start, Freestyle, 01_08_2023 08_59_22_5.avi",
