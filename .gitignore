@@ -152,6 +152,15 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Custom Ignores
+/results
+ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models
+ImageSegmentationAndPoseEstimation/DWPoseLib/Models
+*.jpeg
+*.avi
+*.jpg
+*.pt
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

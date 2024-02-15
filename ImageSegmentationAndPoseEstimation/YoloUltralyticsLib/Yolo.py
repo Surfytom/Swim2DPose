@@ -52,7 +52,7 @@ def LoadMediaPath(path, stack):
     
         videoReader = cv2.VideoCapture(path)
 
-        for i in range(3):
+        while True:
 
             ret, frame = videoReader.read()
 
@@ -64,31 +64,36 @@ def LoadMediaPath(path, stack):
 
         stack.append(cv2.imread(path))
 
-def YOLOSegment(imagePaths, paddingSize=10):
+def YOLOSegment(imageStack, paddingSize=10):
 
     if MODEL == None:
         return "Error: Model Not Loaded"
+    
+    allResults = []
 
-    imageStack = []
+    for images in imageStack:
 
-    for path in imagePaths:
-        LoadMediaPath(path, imageStack)
+        # imageStack = []
 
-    results = MODEL(imageStack)
+        # LoadMediaPath(path, imageStack)
 
-    results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp), result.orig_shape] for result in results]
+        results = MODEL(images)
 
-    print(f"results: {results}")
+        results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp), result.orig_shape] for result in results]
 
-    results = padBox(results, paddingSize)
+        #print(f"results: {results}")
 
-    results = fitToImage(results)
+        results = padBox(results, paddingSize)
 
-    return results
+        results = fitToImage(results)
+
+        allResults.append(results)
+
+    return allResults
 
 if __name__ == "__main__":
 
-    settings.update({"weights_dir": "Models"})
+    settings.update({"weights_dir": "YoloUltralyticsLib/Models"})
 
     inputPaths = [
         "Cohoon, Start, Freestyle, 01_08_2023 08_59_22_5.avi",
