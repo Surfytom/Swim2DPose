@@ -2,13 +2,14 @@ import cv2
 from ultralytics import YOLO
 from ultralytics import settings
 import numpy as np
+import torch
 
 DEBUG = False
 MODEL = None
 
 def fitToImage(xyxy):
 
-    for i, (boxes, imageShape) in enumerate(xyxy):
+    for i, (boxes, masks, imageShape) in enumerate(xyxy):
 
         if DEBUG:
             print(f"image shape before reverse: {imageShape}")
@@ -35,7 +36,8 @@ def fitToImage(xyxy):
 
 def padBox(cords, padding):
 
-    for i, (boxes, imageShape) in enumerate(cords):
+    for i, boxes in enumerate(cords):
+        boxes = boxes[0]
         for j, box in enumerate(boxes):
 
             cords[i][0][j][:2] = box[:2] - padding
@@ -63,25 +65,35 @@ def LoadMediaPath(path, stack):
     else:
 
         stack.append(cv2.imread(path))
+    
+def InitModel(ptFilePath="yolov8n.pt"):
 
-def YOLOSegment(imageStack, paddingSize=10):
+    model = YOLO(ptFilePath)
 
-    if MODEL == None:
+    if model == None:
         return "Error: Model Not Loaded"
+
+    model.to(device='cuda:0' if torch.cuda.is_available() else 'cpu')
+
+    print(f"Yolo Model loaded to: {model.device}")
+
+    return model
+
+def YOLOSegment(model, imageStack, paddingSize=10):
     
     allResults = []
 
     for images in imageStack:
 
-        # imageStack = []
+        print(f"Video frame amount: {len(images)}")
 
-        # LoadMediaPath(path, imageStack)
+        results = model(images, max_det=3)
 
-        results = MODEL(images)
+        for i, result in enumerate(results):
+            if result.masks == None:
+                print(f"{i} Mask none")
 
-        results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp), result.orig_shape] for result in results]
-
-        #print(f"results: {results}")
+        results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp) if result.boxes != None else None, result.masks.xy if result.masks != None else None, result.orig_shape] for result in results]
 
         results = padBox(results, paddingSize)
 
@@ -153,8 +165,4 @@ if __name__ == "__main__":
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
-else:
-    
-    MODEL = YOLO("yolov8n.pt")
 

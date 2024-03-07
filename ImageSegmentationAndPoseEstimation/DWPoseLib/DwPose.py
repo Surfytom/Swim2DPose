@@ -16,7 +16,6 @@ def InitModel(configFilePath, weightCheckpointPath):
     
 def InferenceTopDown(model, imageStack):
     # Runs the model on a set of images returning the keypoints the model detects
-
     allKeyPoints = []
 
     for i, images in enumerate(imageStack):
@@ -24,7 +23,6 @@ def InferenceTopDown(model, imageStack):
         
         allKeyPoints.append([])
         for image in images:
-
             results = inference_topdown(model, image)
 
             keyPoints = results[0].pred_instances.keypoints[0]

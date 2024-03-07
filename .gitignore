@@ -158,8 +158,10 @@ ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models
 ImageSegmentationAndPoseEstimation/DWPoseLib/Models
 *.jpeg
 *.avi
+*.mp4
 *.jpg
 *.pt
+env.txt
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
