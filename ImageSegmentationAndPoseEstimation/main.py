@@ -179,35 +179,18 @@ def MaskSegment(imageStack, results):
 
     return [segmentedImages, bboxes]
 
-# def DrawKeypoints(inputStack, keyPointStack, bboxeStack, imageStack, stride=1):
+def GetBGRColours():
 
-#     selectedKeyPoints = []
-    
-#     for images, keypoints, bboxes in zip(inputStack, keyPointStack, bboxeStack):
-#         count = 0
-#         for image, keyPointArray, box in zip(images, keypoints, bboxes):
-#             selectedKeyPoints.append([])
-#             # cv2.imshow("test1", image)
+    colours = [
+        (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
+        (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
+        (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
+        (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
+        (255, 255, 255), (0, 0, 0), (128, 0, 0)
+    ]
 
-#             x, y = box[:2]
-#             # segmentedImage = image[y:y1, x:x1]
-
-
-#             for i, (keyX, keyY) in enumerate(keyPointArray):
-#                 if i in selectedPoints:
-#                     cv2.putText(image, f"{i}", (x+keyX, y+keyY), cv2.FONT_HERSHEY_SIMPLEX, .80, (0, 255, 0), 2)
-#                     cv2.circle(image, (x+keyX, y+keyY), 3, (0, 0, 255), -1)
-
-#                     selectedKeyPoints[count].append([(x+keyX), (y+keyY)])
-            
-#             # print(keyPointArray)
-
-#             # cv2.imshow("test2", cv2.resize(image, ((image.shape[1] // 4), (image.shape[0] // 4))))
-
-#             # cv2.waitKey(0)
-#             # cv2.destroyAllWindows()
-            
-#             count += 1
+    for colour in colours:
+        yield colour
 
 def DrawKeypoints(inputStack, keyPointStack, bboxeStack, stride=1, draw=True):
 
@@ -236,11 +219,14 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, stride=1, draw=True):
 
             for p in range(loopLength):
                 #print(f"p value: {(j*stride)+p}")
+
+                colourGen = GetBGRColours()
+
                 for t, (keyX, keyY) in enumerate(keyPointArray):
                     if t in selectedPoints:
                         if draw:
-                            cv2.putText(images[(j*stride)+p], f"{t}", (x+keyX, y+keyY), cv2.FONT_HERSHEY_SIMPLEX, .80, (0, 255, 0), 2)
-                            cv2.circle(images[(j*stride)+p], (x+keyX, y+keyY), 3, (0, 0, 255), -1)
+                            cv2.putText(images[(j*stride)+p], f"{t}", ((x+keyX)-10, (y+keyY)-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
+                            cv2.circle(images[(j*stride)+p], (x+keyX, y+keyY), 3, next(colourGen), -1)
 
                         selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
 
@@ -296,7 +282,7 @@ def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
 
 if __name__ == "__main__":
 
-    useMasks = False
+    useMasks = True
     inferenceMode = True
     annotationMode = False
 
@@ -334,7 +320,7 @@ if __name__ == "__main__":
     print(f"stride stack length {len(inputStack[0])}")
     print(f"stride stack length 2 {len(imageStack[0][::stride])}")
 
-    yoloModel = yolo.InitModel("yolov8x-seg.pt")
+    yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
 
     # Need to send yolo segmented images to dwpose model
     results = yolo.YOLOSegment(yoloModel, inputStack)
