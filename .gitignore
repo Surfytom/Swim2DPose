@@ -153,9 +153,9 @@ dmypy.json
 cython_debug/
 
 # Custom Ignores
-/results
-ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models
-ImageSegmentationAndPoseEstimation/DWPoseLib/Models
+results/*
+ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/*
+ImageSegmentationAndPoseEstimation/DWPoseLib/Models/*
 *.jpeg
 *.avi
 *.mp4

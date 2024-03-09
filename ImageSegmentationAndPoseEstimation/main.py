@@ -7,7 +7,9 @@ from torch import cuda
 import json
 import glob
 
-import ImageSegmentationAndPoseEstimation.LabelBoxApi as labelBox
+import LabelBoxApi as labelBox
+
+DEBUG = False
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
  
@@ -46,6 +48,43 @@ def LoadMediaPath(path, stride=1):
 
     return [images, strideImages]
 
+def fitToImage(xyxy, imageShape):    
+
+    if DEBUG:
+        print(f"image shape before reverse: {imageShape}")
+
+    imageShape = imageShape[::-1]
+
+    if DEBUG:
+        print(f"image shape after reverse: {imageShape}")
+    
+    for i in range(2):
+        for j in range(i, 4, 2):
+            if DEBUG:
+                print(f"i: {i} | j: {xyxy[j]}")
+            if xyxy[j] < 0:
+                xyxy[j] = 0
+            elif xyxy[j] >= imageShape[i]:
+                xyxy[j] = imageShape[i]-1
+
+    if DEBUG:
+        print(f"boxes after fit to image: {xyxy}")
+                
+    return xyxy
+
+def padBox(xyxy, padding):
+
+    if DEBUG:
+        print(f"boxes before paddings: {xyxy}")
+
+    xyxy[:2] -= padding
+    xyxy[2:] += padding
+
+    if DEBUG:
+        print(f"boxes after paddings: {xyxy}")
+
+    return xyxy
+
 def SizeOfBox(bbox):
     bbox = bbox[1]
     return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
@@ -62,7 +101,12 @@ def BboxSegment(imageStack, results):
         segmentedImages.append([])
         returnBboxes.append([])
         for image, box in zip(images, boxes):
-            x, y, x1, y1 = box[0][max(enumerate(box[0]), key=SizeOfBox)[0]]
+
+            xyxy = box[0][max(enumerate(box[0]), key=SizeOfBox)[0]]
+
+            xyxy = padBox(xyxy, 10)
+
+            x, y, x1, y1 = fitToImage(xyxy, box[2][:2])
 
             returnBboxes[count].append([x, y, x1, y1])
 
@@ -126,8 +170,12 @@ def MaskSegment(imageStack, results):
 
             x, y, w, h = cv2.boundingRect(largestContour)
 
-            segmentedImages[i].append(shownImage[y:y+h, x:x+w])
-            bboxes[i].append([x, y, x+w, y+h])
+            xyxy = padBox(np.array([x, y, x+w, y+h]), 10)
+
+            x, y, x1, y1 = fitToImage(xyxy, mask.shape)
+
+            segmentedImages[i].append(shownImage[y:y1, x:x1])
+            bboxes[i].append([x, y, x1, y1])
 
     return [segmentedImages, bboxes]
 
@@ -248,9 +296,9 @@ def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
 
 if __name__ == "__main__":
 
-    useMasks = True
-    inferenceMode = False
-    annotationMode = True
+    useMasks = False
+    inferenceMode = True
+    annotationMode = False
 
     inputStack = []
     imageStack = []
@@ -268,12 +316,12 @@ if __name__ == "__main__":
 
     #paths = ["guy.jpeg"]
 
-    array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
+    #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
-    #paths = ["D:/My Drive/Msc Artificial Intelligence/Semester 2/AI R&D/AIR&DProject/Sample Videos/EditedVideos/Burras, Start, Freestyle, 15_02_2024 10_12_41_5_Edited.mp4"]
-    paths = [path.replace('\\', "/") for path in array]
+    paths = ["D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/Auboeck, Start, Freestyle, 26_09_2023 10_17_43_5_Edited.mp4"]
+    #paths = [path.replace('\\', "/") for path in array]
 
-    paths = paths[60:]
+    #paths = paths[60:]
 
     for path in paths:
         images, strideImages = LoadMediaPath(path, stride)

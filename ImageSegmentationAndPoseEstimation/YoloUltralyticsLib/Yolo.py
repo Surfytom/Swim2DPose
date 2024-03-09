@@ -7,47 +7,6 @@ import torch
 DEBUG = False
 MODEL = None
 
-def fitToImage(xyxy):
-
-    for i, (boxes, masks, imageShape) in enumerate(xyxy):
-
-        if DEBUG:
-            print(f"image shape before reverse: {imageShape}")
-
-        imageShape = imageShape[::-1]
-
-        if DEBUG:
-            print(f"image shape after reverse: {imageShape}")
-
-        for j, box in enumerate(boxes):
-            for t in range(2):
-                for p in range(t, 4, 2):
-                    if DEBUG:
-                        print(f"i: {i} | j: {j} | t: {t} | p: {xyxy[i][0][j][p]}")
-                    if xyxy[i][0][j][p] < 0:
-                        xyxy[i][0][j][p] = 0
-                    elif xyxy[i][0][j][p] >= imageShape[t]:
-                        xyxy[i][0][j][p] = imageShape[t]-1
-    
-    if DEBUG:
-        print(f"boxes after fit to image: {xyxy}")
-                
-    return xyxy
-
-def padBox(cords, padding):
-
-    for i, boxes in enumerate(cords):
-        boxes = boxes[0]
-        for j, box in enumerate(boxes):
-
-            cords[i][0][j][:2] = box[:2] - padding
-            cords[i][0][j][2:] = box[2:] + padding
-
-    if DEBUG:
-        print(f"boxes after paddings: {cords}")
-
-    return cords
-
 def LoadMediaPath(path, stack):
 
     if ".avi" in path:
@@ -94,10 +53,6 @@ def YOLOSegment(model, imageStack, paddingSize=10):
                 print(f"{i} Mask none")
 
         results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp) if result.boxes != None else None, result.masks.xy if result.masks != None else None, result.orig_shape] for result in results]
-
-        results = padBox(results, paddingSize)
-
-        results = fitToImage(results)
 
         allResults.append(results)
 
