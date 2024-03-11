@@ -120,6 +120,17 @@ def BboxSegment(imageStack, results):
         
     return [segmentedImages, returnBboxes]
 
+def ContourArea(contour):
+
+    threshold = 100000.0
+
+    area = cv2.contourArea(contour)
+
+    if area > threshold:
+        return 0.0
+    
+    return area
+
 def MaskSegment(imageStack, results):
 
     segmentedImages = []
@@ -155,7 +166,7 @@ def MaskSegment(imageStack, results):
 
             contours = [np.array(points, dtype=np.int32) for points in results[i][j][1]]
 
-            largestContour = max(contours, key=cv2.contourArea)
+            largestContour = max(contours, key=ContourArea)
 
             cv2.drawContours(mask, [largestContour], 0, (255), -1)
 
@@ -173,6 +184,8 @@ def MaskSegment(imageStack, results):
             xyxy = padBox(np.array([x, y, x+w, y+h]), 10)
 
             x, y, x1, y1 = fitToImage(xyxy, mask.shape)
+
+            cv2.drawContours(image, [largestContour], -1, (255, 255, 255), 2)
 
             segmentedImages[i].append(shownImage[y:y1, x:x1])
             bboxes[i].append([x, y, x1, y1])
@@ -232,7 +245,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, stride=1, draw=True):
 
     return selectedKeyPoints
 
-def SaveImages(imageStack, folderPath):
+def SaveImages(imageStack, folderPath="./results"):
 
     outputPaths = glob.glob(f"{folderPath}/run*")
 
@@ -300,11 +313,14 @@ if __name__ == "__main__":
     selectedPoints.extend(keypointGroups["bodySimpleFace"])
     selectedPoints.extend(keypointGroups["feet"])
 
-    #paths = ["guy.jpeg"]
+    # Allow a folder to be entered and run this on all files in folder
+    # Make sure memory does not get capped out
+
+    paths = ["D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos\Butler, Start, Breast, 20_02_2024 09_37_55_5_Edited.mp4"]
 
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
-    paths = ["D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/Auboeck, Start, Freestyle, 26_09_2023 10_17_43_5_Edited.mp4"]
+    #paths = ["D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/Auboeck, Start, Freestyle, 26_09_2023 10_17_43_5_Edited.mp4"]
     #paths = [path.replace('\\', "/") for path in array]
 
     #paths = paths[60:]
@@ -331,7 +347,7 @@ if __name__ == "__main__":
 
     keyPoints = dwpose.InferenceTopDown(model, segmentedImageStack)
 
-    selectedKeyPoints = DrawKeypoints(imageStack, keyPoints, Bboxes, stride, False if annotationMode else True)
+    selectedKeyPoints = DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True)
 
     if inferenceMode:
         SaveImages(imageStack, "./results")
