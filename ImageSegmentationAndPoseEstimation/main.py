@@ -316,7 +316,7 @@ if __name__ == "__main__":
     # Allow a folder to be entered and run this on all files in folder
     # Make sure memory does not get capped out
 
-    paths = ["D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos\Butler, Start, Breast, 20_02_2024 09_37_55_5_Edited.mp4"]
+    paths = ["/home/surfytom/SwimPose/Swim2DPose/Cohoon, Start, Freestyle, 11_01_2024 11_23_43_5_Edited.mp4"]
 
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
@@ -343,9 +343,19 @@ if __name__ == "__main__":
 
     segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
 
+    # *** THIS IS WHAT NEEDS TO BE CHANGED To IMPLEMENET A NEW POSE MODEL ***
+
+    # This function initialises and return a model with a weight and config path
     model = dwpose.InitModel("ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeConfig.py", "ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeModel.pth")
 
+    # This function runs the model and gets a result in the format
+    # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+
+    # Required output format:
+    # [[[x, y], [x, y], ...], [[x, y], [x, y], ...], ...], [[x, y], [x, y], ...], [[x, y], [x, y], ...], ...]]
     keyPoints = dwpose.InferenceTopDown(model, segmentedImageStack)
+
+    # *** THIS IS WHAT NEEDS TO BE CHANGED To IMPLEMENET A NEW POSE MODEL ***
 
     selectedKeyPoints = DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True)
 
