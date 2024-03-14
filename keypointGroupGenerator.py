@@ -15,7 +15,8 @@ keypointGroups = {
     "hands": handArray,
     "simpleHands": simpleHandArray,
     "bodySimpleFace": bodySimpleFaceArray,
-    "simpleFeet": simpleFeetArray
+    "simpleFeet": simpleFeetArray,
+    "DWPose": simpleHandArray + bodySimpleFaceArray + feetArray
 }
 
 file = open("keypointGroupings.json", "w")

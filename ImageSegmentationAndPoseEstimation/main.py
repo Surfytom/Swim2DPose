@@ -14,9 +14,9 @@ DEBUG = False
 # This means only the required model library is loaded
 # It requires a new condition to be added for each model
 # It requires the imported file to have the required function 
-poseModel = "DwPose"
+poseModel = "DWPose"
 
-if poseModel == "DwPose":
+if poseModel == "DWPose":
     import DWPoseLib.DwPose as dwpose
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
@@ -316,10 +316,8 @@ if __name__ == "__main__":
     with open("keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
 
-    selectedPoints = []
-    selectedPoints.extend(keypointGroups["simpleHands"])
-    selectedPoints.extend(keypointGroups["bodySimpleFace"])
-    selectedPoints.extend(keypointGroups["feet"])
+    selectedPoints = keypointGroups[poseModel]
+    print(selectedPoints)
 
     # Allow a folder to be entered and run this on all files in folder
     # Make sure memory does not get capped out
@@ -351,7 +349,7 @@ if __name__ == "__main__":
 
     segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
 
-    # *** THIS IS WHAT NEEDS TO BE CHANGED To IMPLEMENET A NEW POSE MODEL ***
+    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENET A NEW POSE MODEL ***
 
     # This function initialises and return a model with a weight and config path
     model = dwpose.InitModel("ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeConfig.py", "ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeModel.pth")
@@ -363,7 +361,7 @@ if __name__ == "__main__":
     # [[[x, y], [x, y], ...], [[x, y], [x, y], ...], ...], [[x, y], [x, y], ...], [[x, y], [x, y], ...], ...]]
     keyPoints = dwpose.InferenceTopDown(model, segmentedImageStack)
 
-    # *** THIS IS WHAT NEEDS TO BE CHANGED To IMPLEMENET A NEW POSE MODEL ***
+    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENET A NEW POSE MODEL ***
 
     selectedKeyPoints = DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True)
 
