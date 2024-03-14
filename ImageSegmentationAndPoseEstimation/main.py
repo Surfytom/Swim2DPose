@@ -1,4 +1,3 @@
-import DWPoseLib.DwPose as dwpose
 import YoloUltralyticsLib.Yolo as yolo
 import cv2
 import numpy as np
@@ -10,6 +9,15 @@ import glob
 import LabelBoxApi as labelBox
 
 DEBUG = False
+
+# Potentially a solution to implemeting different models
+# This means only the required model library is loaded
+# It requires a new condition to be added for each model
+# It requires the imported file to have the required function 
+poseModel = "DwPose"
+
+if poseModel == "DwPose":
+    import DWPoseLib.DwPose as dwpose
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
  
