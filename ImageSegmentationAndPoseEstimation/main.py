@@ -14,10 +14,12 @@ DEBUG = False
 # This means only the required model library is loaded
 # It requires a new condition to be added for each model
 # It requires the imported file to have the required function 
-poseModel = "DWPose"
+poseModelImport = "YoloNasNet"
 
-if poseModel == "DWPose":
-    import DWPoseLib.DwPose as dwpose
+if poseModelImport == "DWPose":
+    import DWPoseLib.DwPose as poseModel
+if poseModelImport == "YoloNasNet":
+    import YoloNasNetLib.YoloNasNet as poseModel
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
  
@@ -120,9 +122,10 @@ def BboxSegment(imageStack, results):
 
             segmentedImages[count].append(image[y:y1, x:x1])
 
-            for b in box[0]:
-                x, y, x1, y1 = b
-                cv2.rectangle(image, (x, y), (x1, y1), (0, 0, 255), 2)
+            # Deprecated: moved to draw keypoints function
+            # for b in box[0]:
+            #     x, y, x1, y1 = b
+            #     cv2.rectangle(image, (x, y), (x1, y1), (0, 0, 255), 2)
 
         count += 1
         
@@ -289,6 +292,8 @@ def SaveImages(imageStack, folderPath="./results"):
 
             out.release()
 
+    print(f"Outputs saved to {folderPath}/run{max}")
+
 def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
 
     client = labelBox.InitializeClient(apiKey)
@@ -303,7 +308,7 @@ def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
 
 if __name__ == "__main__":
 
-    useMasks = True
+    useMasks = False
     inferenceMode = True
     annotationMode = False
 
@@ -316,13 +321,13 @@ if __name__ == "__main__":
     with open("keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
 
-    selectedPoints = keypointGroups[poseModel]
+    selectedPoints = keypointGroups[poseModelImport]
     print(selectedPoints)
 
     # Allow a folder to be entered and run this on all files in folder
     # Make sure memory does not get capped out
 
-    paths = ["/home/surfytom/SwimPose/Swim2DPose/Cohoon, Start, Freestyle, 11_01_2024 11_23_43_5_Edited.mp4"]
+    paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
 
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
@@ -349,21 +354,33 @@ if __name__ == "__main__":
 
     segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
 
-    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENET A NEW POSE MODEL ***
+    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
+
+    # Loads the models specific config file
+    config = poseModel.LoadConfig()
 
     # This function initialises and return a model with a weight and config path
-    model = dwpose.InitModel("ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeConfig.py", "ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeModel.pth")
+    model = poseModel.InitModel(config)
 
     # This function runs the model and gets a result in the format
     # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
 
     # Required output format:
     # [[[x, y], [x, y], ...], [[x, y], [x, y], ...], ...], [[x, y], [x, y], ...], [[x, y], [x, y], ...], ...]]
-    keyPoints = dwpose.InferenceTopDown(model, segmentedImageStack)
+    keyPoints = poseModel.Inference(model, segmentedImageStack, config)
 
-    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENET A NEW POSE MODEL ***
+    # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
+    # INPUTS:
+    #   inputStack      : array of images         [[frames], [frames], ...]
+    #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
+    #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
+    #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
+    #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
+    #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
+    #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
+    selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True, True, True)
 
-    selectedKeyPoints = DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True)
+    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
     if inferenceMode:
         SaveImages(imageStack, "./results")

@@ -34,7 +34,7 @@ def YOLOSegment(model, imageStack, paddingSize=10):
             if result.masks == None:
                 print(f"{i} Mask none")
 
-        print(results[0])
+        #print(results[0])
 
         results = [[result.boxes.xyxy.detach().cpu().numpy().astype(np.intp) if result.boxes != None else None, result.masks.xy if result.masks != None else None, result.orig_shape] for result in results]
 

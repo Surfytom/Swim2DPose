@@ -1,0 +1,6 @@
+{
+    "model": "yolo_nas_pose_l",
+    "pretrained_weights": "coco_pose",
+    "iou": 0.3,
+    "confidence": 0.5
+}
