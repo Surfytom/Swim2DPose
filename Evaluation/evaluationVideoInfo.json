@@ -1,0 +1,62 @@
+[
+    {
+        "videoName": "Lewis, Start, Freestyle, 30_01_2024 10_39_36_5_Edited",
+        "totalFrames": 36,
+        "frameStart": 21,
+        "frameEnd": 26
+    },
+    {
+        "videoName": "Hopkin, Start, Freestyle, 06_02_2024 17_37_26_5_Edited",
+        "totalFrames": 43,
+        "frameStart": 26,
+        "frameEnd": 31
+    },
+    {
+        "videoName": "Vazaios, Start, Butterfly, 22_02_2023 16_18_23_5_Edited",
+        "totalFrames": 39,
+        "frameStart": 24,
+        "frameEnd": 29
+    },
+    {
+        "videoName": "Litchfield, Start, Freestyle, 30_11_2023 09_20_32_5_Edited",
+        "totalFrames": 33,
+        "frameStart": 16,
+        "frameEnd": 21
+    },
+    {
+        "videoName": "Peaty, Start, Breast, 22_02_2024 09_17_54_5_Edited",
+        "totalFrames": 66,
+        "frameStart": 40,
+        "frameEnd": 45
+    },
+    {
+        "videoName": "Hindley, Start, Freestyle, 01_02_2024 16_40_27_5_Edited",
+        "totalFrames": 42,
+        "frameStart": 21,
+        "frameEnd": 26
+    },
+    {
+        "videoName": "Hansson, Start, Butterfly, 26_10_2023 11_38_17_5_Edited",
+        "totalFrames": 44,
+        "frameStart": 25,
+        "frameEnd": 30
+    },
+    {
+        "videoName": "Fiedkiewicz, Start, Freestyle, 25_01_2024 11_11_41_5_Edited",
+        "totalFrames": 46,
+        "frameStart": 27,
+        "frameEnd": 32
+    },
+    {
+        "videoName": "Harries, Start, Freestyle, 20_10_2021 16_24_25_5_Edited",
+        "totalFrames": 45,
+        "frameStart": 23,
+        "frameEnd": 28
+    },
+    {
+        "videoName": "Butler, Start, Breast, 24_11_2023 10_29_53_5_Edited",
+        "totalFrames": 29,
+        "frameStart": 15,
+        "frameEnd": 20
+    }
+]
