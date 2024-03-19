@@ -20,7 +20,8 @@ if poseModelImport == "DWPose":
     import DWPoseLib.DwPose as poseModel
 if poseModelImport == "YoloNasNet":
     import YoloNasNetLib.YoloNasNet as poseModel
-
+if poseModelImport == "OpenPose":
+    import YoloNasNetLib.YoloNasNet as poseModel
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
  
 def LoadMediaPath(path, stride=1):
