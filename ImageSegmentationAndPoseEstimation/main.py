@@ -259,7 +259,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, stride=1, draw=True):
 
 def SaveImages(imageStack, folderPath="./results"):
 
-    outputPaths = glob.glob(f"{folderPath}/run*")
+    outputPaths = glob.glob(f"{folderPath}/*run*")
 
     max = 0
 
@@ -276,24 +276,24 @@ def SaveImages(imageStack, folderPath="./results"):
 
     max += 1
 
-    os.mkdir(f"{folderPath}/run{max}")
+    os.mkdir(f"{folderPath}/{poseModelImport}run{max}")
 
     for i, images in enumerate(imageStack):
 
-        os.mkdir(f"{folderPath}/run{max}/ouput{i}")
+        os.mkdir(f"{folderPath}/{poseModelImport}run{max}/ouput{i}")
 
         if len(images) == 1:
-            cv2.imwrite(f"{folderPath}/run{max}/ouput{i}/image.jpg", images[0])
+            cv2.imwrite(f"{folderPath}/{poseModelImport}run{max}/ouput{i}/image.jpg", images[0])
         else:
             shape = np.shape(images[0])
-            out = cv2.VideoWriter(f'{folderPath}/run{max}/ouput{i}/video.avi', cv2.VideoWriter_fourcc(*'XVID'), 24, (shape[1], shape[0]), True)
+            out = cv2.VideoWriter(f'{folderPath}/{poseModelImport}run{max}/ouput{i}/video.avi', cv2.VideoWriter_fourcc(*'XVID'), 24, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
 
             out.release()
 
-    print(f"Outputs saved to {folderPath}/run{max}")
+    print(f"Outputs saved to {folderPath}/{poseModelImport}run{max}")
 
 def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
 
