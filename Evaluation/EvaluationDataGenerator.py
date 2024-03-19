@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     videoPaths = glob.glob("/mnt/d/My Drive/Msc Artificial Intelligence/Semester 2/AI R&D/AIR&DProject/Sample Videos/EditedVideos/*.mp4")
 
-    randomVideos = np.random.choice(len(videoPaths), size=(N), replace=False)
+    randomVideos = np.random.choice(len(videoPaths), size=(N), replace=False) if N < len(videoPaths)-1 else np.arange(0, len(videoPaths))
 
     if DEBUG:
         print(f"Random Videos Indexes: {randomVideos.shape} | {randomVideos.tolist()}")
