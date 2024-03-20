@@ -14,7 +14,7 @@ DEBUG = False
 # This means only the required model library is loaded
 # It requires a new condition to be added for each model
 # It requires the imported file to have the required function 
-poseModelImport = "YoloNasNet"
+poseModelImport = "DWPose"
 
 if poseModelImport == "DWPose":
     import DWPoseLib.DwPose as poseModel
@@ -329,6 +329,7 @@ if __name__ == "__main__":
     # Make sure memory does not get capped out
 
     paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
+    #paths = ["guy.jpeg"]
 
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
@@ -379,7 +380,7 @@ if __name__ == "__main__":
     #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
     #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
     #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
-    selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True, True, True)
+    selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True, True, True, True)
 
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
