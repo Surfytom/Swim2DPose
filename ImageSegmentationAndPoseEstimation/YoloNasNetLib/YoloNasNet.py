@@ -35,7 +35,7 @@ def Inference(model, imageStack, config):
 
     return allKeyPoints
 
-def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True):
+def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
     with open("keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
@@ -86,12 +86,12 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=
                                 cv2.rectangle(images[(j*stride)+p], (x, y), (x1, y1), (0, 0, 255), 2)
 
                             selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
+                    if drawEdges:
+                        for k, (origin, dest) in enumerate(np.array(keyPointArray.edge_links)):
+                            #print(f"{keyPointArray.poses[0][origin][:2].astype(np.uintp)} | {keyPointArray.poses[0][dest][:2].astype(np.uintp)} | {keyPointArray.edge_colors[k]}")
+                            if isDrawn[origin] and isDrawn[dest]:
 
-                    for k, (origin, dest) in enumerate(np.array(keyPointArray.edge_links)):
-                        #print(f"{keyPointArray.poses[0][origin][:2].astype(np.uintp)} | {keyPointArray.poses[0][dest][:2].astype(np.uintp)} | {keyPointArray.edge_colors[k]}")
-                        if isDrawn[origin] and isDrawn[dest]:
-
-                            #print(f"x, y: {x} {y} line before: {keyPointArray.poses[0][origin][:2].astype(np.uintp)} after : {[x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)} {type([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp))}")
-                            cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)).astype(np.uintp), ([x, y] + keyPointArray.poses[0][dest][:2].astype(np.uintp)).astype(np.uintp), np.array(keyPointArray.edge_colors[k]).tolist(), 3)
+                                #print(f"x, y: {x} {y} line before: {keyPointArray.poses[0][origin][:2].astype(np.uintp)} after : {[x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)} {type([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp))}")
+                                cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)).astype(np.uintp), ([x, y] + keyPointArray.poses[0][dest][:2].astype(np.uintp)).astype(np.uintp), np.array(keyPointArray.edge_colors[k]).tolist(), 3)
 
     return selectedKeyPoints
