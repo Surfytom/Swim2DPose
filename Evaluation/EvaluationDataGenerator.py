@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 import json
 
-DEBUG = True
+DEBUG = False
 
 # If true the video that the frames came from will be displayed in text at the top of the frames
 draw = True
@@ -12,23 +12,27 @@ draw = True
 N = 10
 
 # Number of consecutive frames to sample from each video
-K = 5
+K = 10
 
 # For both C and D 1 means take into account the whole video with no portion cut out
 # Cuts off this portion of the video from being selected E.G 3 (number of frames // 3) means the first third of the video will not be selected at all
 C = 2
 
 # Same as C but for the end portion of the video
-D = 4
+D = 1
 
 def GetRandomFrame(numOfFrames):
 
-    startingFrame = numOfFrames if C == 1 else numOfFrames // C
+    startingFrame = 0 if C == 1 else numOfFrames // C
     endingFrame = numOfFrames if D == 1 else numOfFrames - (numOfFrames // D)
+
+    if DEBUG:
+        print(f"C: {C}, D: {D}")
+        print(f"total frames: {numOfFrames}, starting frame: {startingFrame}, ending frame: {endingFrame}")
 
     if endingFrame - startingFrame < K:
         return startingFrame
-
+    
     randomFrame = np.random.choice(np.arange(startingFrame, endingFrame - K))
 
     return randomFrame

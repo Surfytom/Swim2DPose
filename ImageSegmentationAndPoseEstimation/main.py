@@ -328,8 +328,9 @@ if __name__ == "__main__":
     # Allow a folder to be entered and run this on all files in folder
     # Make sure memory does not get capped out
 
-    paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
+    #paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
     #paths = ["guy.jpeg"]
+    paths = ["Evaluation/evaluationVideo.avi"]
 
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
