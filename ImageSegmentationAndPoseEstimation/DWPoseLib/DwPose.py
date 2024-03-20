@@ -41,23 +41,36 @@ def Inference(model, imageStack, config):
 
 def GetBGRColours():
 
+    # colours = [
+    #     (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
+    #     (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
+    #     (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
+    #     (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
+    #     (255, 255, 255), (0, 0, 0), (128, 0, 0)
+    # ]
+
     colours = [
         (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
         (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
         (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
         (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
-        (255, 255, 255), (0, 0, 0), (128, 0, 0)
+        (255, 255, 255), (0, 0, 0), (128, 0, 0),
+        (255, 0, 128), (0, 255, 128)  # Two visually distinct colors added
     ]
 
     for colour in colours:
         yield colour
 
-def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True):
+def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
     with open("keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
 
-    selectedPoints = keypointGroups["DWPose"]
+    selectedPoints = keypointGroups["DWPose"]["keypoints"]
+    edgeLinks = keypointGroups["DWPose"]["links"]
+
+    selectedPoints.append(133)
+    selectedPoints.append(134)
 
     selectedKeyPoints = []
     
@@ -82,10 +95,15 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=
 
             #print(f"loop length: {loopLength}")
 
+            chestMidPoint = (keyPointArray[5] + keyPointArray[6]) // 2
+            hipMidPoint = (keyPointArray[11] + keyPointArray[12]) // 2
+
+            keyPointArray = np.append(keyPointArray, [chestMidPoint, hipMidPoint], axis=0)
+
             for p in range(loopLength):
                 #print(f"p value: {(j*stride)+p}")
 
-                colourGen = GetBGRColours()
+                colourGen = GetBGRColours()    
 
                 for t, (keyX, keyY) in enumerate(keyPointArray):
                     if t in selectedPoints:
@@ -98,32 +116,29 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=
 
                         selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
 
+                colourGen = GetBGRColours()
+
+                if drawEdges:
+                    for edgeGroup in edgeLinks:
+                        for point1, point2 in edgeLinks[edgeGroup]:
+                            cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray[selectedPoints[point1]]), ([x, y] + keyPointArray[selectedPoints[point2]]), next(colourGen), 3)
+
     return selectedKeyPoints
 
 if __name__ == "__main__":
 
-    print(LoadConfig())
+    print(torch.cuda.is_available())
 
-    # config_file = "DWPoseLib/256x192DWPoseModelConfig.py"
+    image = cv2.imread("guy.jpeg")
 
-    # checkpoint_file = 'DWPoseLib/256x192DWPoseModelModel.pth'
-    # model = init_model(config_file, checkpoint_file, device='cuda:0')  # or device='cuda:0'
+    config = LoadConfig()
 
-    # # please prepare an image with person
-    # results = inference_topdown(model, 'input_image.jpeg')
+    model = InitModel(config)
 
-    # keyPoints = results[0].pred_instances.keypoints[0]
+    print("Model loaded")
 
-    # keyPoints = np.array(keyPoints).astype(np.intp)
+    keypoints = Inference(model, [[image]], config)
 
-    # image = cv2.imread("input_image.jpeg")
+    DrawKeypoints([[image]], keypoints, [[[0, 0, 100, 100]]], 1, True, False, True, True)
 
-    # shape = np.shape(image)
-
-    # for x, y in keyPoints:
-    #     cv2.circle(image, (x, y), 15, (0, 0, 255), -1)
-
-    # cv2.imshow("test1", cv2.resize(image, ((shape[0] // 6), (shape[1] // 6))))
-
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.imwrite("test.jpeg", image)

@@ -8,6 +8,19 @@ bodyArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 simpleHandArray = [103, 124]
 bodySimpleFaceArray = [0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
+dwPoseLinks = {
+    "keypoints": simpleHandArray + bodySimpleFaceArray + feetArray,
+    "links": {
+        "feet": [[14, 18], [14, 19], [14, 20], [13, 15], [13, 16], [13, 17]],
+        "legs": [[10, 12], [12, 14], [9, 11], [11, 13]],
+        "body": [[10, 22], [9, 22], [4, 21], [3, 21], [21, 2], [21, 22]],
+        "arms": [[4, 6], [6, 8], [8, 1], [3, 5], [5, 7], [7, 0]]
+    }
+}
+
+# keypoints = [103,124,0,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+# 0 - 20
+
 keypointGroups = {
     "face": faceArray,
     "body": bodyArray,
@@ -16,7 +29,8 @@ keypointGroups = {
     "simpleHands": simpleHandArray,
     "bodySimpleFace": bodySimpleFaceArray,
     "simpleFeet": simpleFeetArray,
-    "DWPose": simpleHandArray + bodySimpleFaceArray + feetArray
+    "DWPose": dwPoseLinks,
+    "YoloNasNet": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17] 
 }
 
 file = open("keypointGroupings.json", "w")
