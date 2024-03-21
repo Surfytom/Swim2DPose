@@ -9,7 +9,7 @@ DEBUG = False
 draw = True
 
 # Number of videos to sample (No Duplicates)
-N = 10
+N = 25
 
 # Number of consecutive frames to sample from each video
 K = 10

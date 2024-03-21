@@ -14,7 +14,7 @@ DEBUG = False
 # This means only the required model library is loaded
 # It requires a new condition to be added for each model
 # It requires the imported file to have the required function 
-poseModelImport = "DWPose"
+poseModelImport = "YoloNasNet"
 
 if poseModelImport == "DWPose":
     import DWPoseLib.DwPose as poseModel
