@@ -15,4 +15,6 @@ A pre-trained model can be easily added by pointing the weights file path on mod
 
 MMPose hosts many different pose models. The folder dwpose currently can load and run inference with any MMPose model as long as the correct config file and weight file are given within the init_model function.
 
+### OpenPose
+
 ---
