@@ -21,12 +21,20 @@ if poseModelImport == "DWPose":
 if poseModelImport == "YoloNasNet":
     import YoloNasNetLib.YoloNasNet as poseModel
 if poseModelImport == "OpenPose":
-    import YoloNasNetLib.YoloNasNet as poseModel
+    import OpenPoseLib.OpenPoseModel as poseModel
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
- 
-def LoadMediaPath(path, stride=1):
-    # 
 
+def GetFileNames(directory):
+    file_names = []
+    # List all files and directories in the specified directory
+    for file in os.listdir(directory):
+        # Check if the path is a file (not a directory)
+        if os.path.isfile(os.path.join(directory, file)):
+            file_name_without_extension, _ = os.path.splitext(file)
+            file_names.append(file_name_without_extension)
+    return file_names
+
+def LoadMediaPath(path, stride=1):
     images = []
 
     strideImages = []
@@ -59,7 +67,7 @@ def LoadMediaPath(path, stride=1):
 
     return [images, strideImages]
 
-def fitToImage(xyxy, imageShape):    
+def FitToImage(xyxy, imageShape):    
 
     if DEBUG:
         print(f"image shape before reverse: {imageShape}")
@@ -117,7 +125,7 @@ def BboxSegment(imageStack, results):
 
             xyxy = padBox(xyxy, 10)
 
-            x, y, x1, y1 = fitToImage(xyxy, box[2][:2])
+            x, y, x1, y1 = FitToImage(xyxy, box[2][:2])
 
             returnBboxes[count].append([x, y, x1, y1])
 
@@ -195,7 +203,7 @@ def MaskSegment(imageStack, results):
 
             xyxy = padBox(np.array([x, y, x+w, y+h]), 10)
 
-            x, y, x1, y1 = fitToImage(xyxy, mask.shape)
+            x, y, x1, y1 = FitToImage(xyxy, mask.shape)
 
             cv2.drawContours(image, [largestContour], -1, (255, 255, 255), 2)
 
@@ -319,19 +327,25 @@ if __name__ == "__main__":
 
     print(cuda.is_available())
 
-    with open("keypointGroupings.json", "r") as f:
-        keypointGroups = json.load(f)
+    if poseModelImport != "OpenPose" or poseModelImport != "AlphaPose":
+        with open("keypointGroupings.json", "r") as f:
+            keypointGroups = json.load(f)
 
-    selectedPoints = keypointGroups[poseModelImport]
-    print(selectedPoints)
+        selectedPoints = keypointGroups[poseModelImport]
+        print(selectedPoints)
 
     # Allow a folder to be entered and run this on all files in folder
     # Make sure memory does not get capped out
 
     #paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
-    #paths = ["guy.jpeg"]
-    paths = ["Evaluation/evaluationVideo.avi"]
+    paths = []
+    path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
+    # Get the file names in the directory
+    fileNames = GetFileNames(path)
+
+    print("File names in the directory:")
+    print(fileNames)
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
     #paths = ["D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/Auboeck, Start, Freestyle, 26_09_2023 10_17_43_5_Edited.mp4"]
@@ -339,8 +353,9 @@ if __name__ == "__main__":
 
     #paths = paths[60:]
 
-    for path in paths:
-        images, strideImages = LoadMediaPath(path, stride)
+    for fileName in fileNames:
+        images, strideImages = LoadMediaPath(f'{path}/{fileName}', stride)
+        paths.append(f'{path}/{fileName}')
         inputStack.append(images if stride == 1 else strideImages)
         imageStack.append(images)
 
@@ -349,13 +364,6 @@ if __name__ == "__main__":
     print(f"Image stack length {len(imageStack[0])}")
     print(f"stride stack length {len(inputStack[0])}")
     print(f"stride stack length 2 {len(imageStack[0][::stride])}")
-
-    yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
-
-    # Need to send yolo segmented images to dwpose model
-    results = yolo.YOLOSegment(yoloModel, inputStack)
-
-    segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
 
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
@@ -370,8 +378,18 @@ if __name__ == "__main__":
 
     # Required output format:
     # [[[x, y], [x, y], ...], [[x, y], [x, y], ...], ...], [[x, y], [x, y], ...], [[x, y], [x, y], ...], ...]]
-    keyPoints = poseModel.Inference(model, segmentedImageStack, config)
+    if poseModelImport == "DWPose":
+        yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
+        # Need to send yolo segmented images to dwpose model
+        results = yolo.YOLOSegment(yoloModel, inputStack)
 
+        segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
+        keyPoints = poseModel.Inference(model, segmentedImageStack, config)
+    elif poseModelImport == "OpenPose":
+        print(fileNames)
+        keyPoints = poseModel.Inference(model, fileNames)
+    elif poseModelImport == "AlphaPose":
+        print("AlphaPose implementation")
     # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
     # INPUTS:
     #   inputStack      : array of images         [[frames], [frames], ...]
@@ -381,24 +399,26 @@ if __name__ == "__main__":
     #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
     #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
     #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
-    selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True, True, True, True)
 
-    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
+    if poseModelImport != "OpenPose" or poseModelImport != "AlphaPose":
+        selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True, True, True, True)
 
-    if inferenceMode:
-        SaveImages(imageStack, "./results")
+        # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
-    if annotationMode:
-        with open("env.txt", "r") as f:
-            api_key = f.read().split("=")[1]
+        if inferenceMode:
+            SaveImages(imageStack, "./results")
 
-        #print(selectedKeyPoints)
-        #print(np.shape(selectedKeyPoints))
+        if annotationMode:
+            with open("env.txt", "r") as f:
+                api_key = f.read().split("=")[1]
 
-        print(paths)
+            #print(selectedKeyPoints)
+            #print(np.shape(selectedKeyPoints))
 
-        for i, input in enumerate(imageStack):
-            if len(input) <= 1:
-                paths.remove(i)
-                
-        SaveVideoAnnotationsToLabelBox(api_key, paths, selectedKeyPoints)
+            print(paths)
+
+            for i, input in enumerate(imageStack):
+                if len(input) <= 1:
+                    paths.remove(i)
+                    
+            SaveVideoAnnotationsToLabelBox(api_key, paths, selectedKeyPoints)
