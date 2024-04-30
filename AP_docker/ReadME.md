@@ -93,3 +93,29 @@ Train FastPose on mscoco dataset.
 ```
 
 *** At the moment training has not been tested within docker
+
+## Citation
+
+```
+@article{alphapose,
+  author = {Fang, Hao-Shu and Li, Jiefeng and Tang, Hongyang and Xu, Chao and Zhu, Haoyi and Xiu, Yuliang and Li, Yong-Lu and Lu, Cewu},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  title = {AlphaPose: Whole-Body Regional Multi-Person Pose Estimation and Tracking in Real-Time},
+  year = {2022}
+}
+
+@inproceedings{fang2017rmpe,
+  title={{RMPE}: Regional Multi-person Pose Estimation},
+  author={Fang, Hao-Shu and Xie, Shuqin and Tai, Yu-Wing and Lu, Cewu},
+  booktitle={ICCV},
+  year={2017}
+}
+
+@inproceedings{li2019crowdpose,
+    title={Crowdpose: Efficient crowded scenes pose estimation and a new benchmark},
+    author={Li, Jiefeng and Wang, Can and Zhu, Hao and Mao, Yihuan and Fang, Hao-Shu and Lu, Cewu},
+    booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+    pages={10863--10872},
+    year={2019}
+}
+```
