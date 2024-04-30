@@ -5,39 +5,44 @@ import os
 from torch import cuda
 import json
 import glob
+import time
 
 import LabelBoxApi as labelBox
 
-DEBUG = False
+# If set to true debug statements will be printed
+DEBUG = True
 
 # Potentially a solution to implemeting different models
 # This means only the required model library is loaded
 # It requires a new condition to be added for each model
 # It requires the imported file to have the required function 
-poseModelImport = "YoloNasNet"
+poseModelImport = "DWPose"
 
+# Imports the specific pose model specified
 if poseModelImport == "DWPose":
     import DWPoseLib.DwPose as poseModel
 if poseModelImport == "YoloNasNet":
     import YoloNasNetLib.YoloNasNet as poseModel
-if poseModelImport == "OpenPose":
-    import YoloNasNetLib.YoloNasNet as poseModel
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
  
 def LoadMediaPath(path, stride=1):
-    # 
+    # Loads media (image or video) from specified path
 
+    # Initializes images array to store images/frames
     images = []
 
+    # Initializes array to only store every N images based on stide input
     strideImages = []
 
+    # Only processes videos with .avi/.mp4 extension (this can be changed if needed and supported by opencv)
     if ".avi" in path or ".mp4" in path:
-    
+
+        # Initializes video capture strean with path to video
         videoReader = cv2.VideoCapture(path)
 
+        # Loops through each frames appending to images each loop and appending to strideImages every stride loops
         count = 0
         while True:
-        #for i in range(10):
 
             ret, frame = videoReader.read()
 
@@ -51,6 +56,7 @@ def LoadMediaPath(path, stride=1):
 
             count += 1
     else:
+        # Assumes if not .mp4 or .avi that it is image
 
         image = cv2.imread(path)
 
@@ -59,7 +65,8 @@ def LoadMediaPath(path, stride=1):
 
     return [images, strideImages]
 
-def fitToImage(xyxy, imageShape):    
+def fitToImage(xyxy, imageShape):
+    # Takes in a bounding box top left and bottom right xy cordinate and makes sure it fits within the image size
 
     if DEBUG:
         print(f"image shape before reverse: {imageShape}")
@@ -84,6 +91,7 @@ def fitToImage(xyxy, imageShape):
     return xyxy
 
 def padBox(xyxy, padding):
+    # Takes in a bounding box top left and bottom right xy cordinate and pads it by an input amount
 
     if DEBUG:
         print(f"boxes before paddings: {xyxy}")
@@ -97,10 +105,12 @@ def padBox(xyxy, padding):
     return xyxy
 
 def SizeOfBox(bbox):
+    # Function only used for max() sort and return size of bounding box
     bbox = bbox[1]
     return (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
 
 def BboxSegment(imageStack, results):
+    # Crops each image based on largest bounding box
 
     segmentedImages = []
 
@@ -112,31 +122,36 @@ def BboxSegment(imageStack, results):
         segmentedImages.append([])
         returnBboxes.append([])
         for image, box in zip(images, boxes):
+            # box contains all bounding boxes returned by segmentation model for this image
 
+            # Finds the bounding box with the biggest area
             xyxy = box[0][max(enumerate(box[0]), key=SizeOfBox)[0]]
 
+            # Pads box by 10 pixels
             xyxy = padBox(xyxy, 10)
 
+            # Fits new padded box to the image size
             x, y, x1, y1 = fitToImage(xyxy, box[2][:2])
 
+            # Append new added bounding box
             returnBboxes[count].append([x, y, x1, y1])
 
+            # Append cropped image using the padded bounding box
             segmentedImages[count].append(image[y:y1, x:x1])
-
-            # Deprecated: moved to draw keypoints function
-            # for b in box[0]:
-            #     x, y, x1, y1 = b
-            #     cv2.rectangle(image, (x, y), (x1, y1), (0, 0, 255), 2)
 
         count += 1
         
     return [segmentedImages, returnBboxes]
 
 def ContourArea(contour):
+    # Rturens area of a contour with a certain upper threshold (for max() sorting)
 
     threshold = 100000.0
 
     area = cv2.contourArea(contour)
+
+    if DEBUG:
+        print(f"CONTOUR AREA: {area}")
 
     if area > threshold:
         return 0.0
@@ -144,6 +159,7 @@ def ContourArea(contour):
     return area
 
 def MaskSegment(imageStack, results):
+    # Similar to bboxSegment function but for contour masks
 
     segmentedImages = []
     bboxes = []
@@ -159,14 +175,18 @@ def MaskSegment(imageStack, results):
 
             image = images[j]
 
+            # Initializes a black grayscale mask which is the shape of the image
             mask = np.zeros(shape=(image.shape[0], image.shape[1]), dtype=np.uint8)
 
+            # If results are None it means no masks were returned by the segmentation model
             if results[i][j][1] == None:
-
+                
+                # Makes mask a 100 by 100 pixel square with an origin of 0, 0
                 if i == 0 and j == 0:
                     x, y = 0
                     w, h = 100
 
+                # Applies mask to original coloured images to crop it
                 shownImage = cv2.bitwise_and(image, image, mask=mask)
 
                 segmentedImages[i].append(shownImage[y:y+h, x:x+w])
@@ -174,37 +194,53 @@ def MaskSegment(imageStack, results):
 
                 continue
 
-            mask = np.zeros(shape=(image.shape[0], image.shape[1]), dtype=np.uint8)
+            #mask = np.zeros(shape=(image.shape[0], image.shape[1]), dtype=np.uint8)
 
+            # converts each contour into opencv compatible contour using numpy 32 bit ints as dtype
             contours = [np.array(points, dtype=np.int32) for points in results[i][j][1]]
 
+            # Finds the largest contour based on Contourarea function above
             largestContour = max(contours, key=ContourArea)
 
+            # Draws the largest contour to black grayscale mask using white colour. -1 means filled
             cv2.drawContours(mask, [largestContour], 0, (255), -1)
 
+            # Thresholds the mask into binary so black is 0 and white is 1
             mask = cv2.threshold(mask, 150, 255, cv2.THRESH_BINARY)[1]
 
+            # Initializes 11 x 11 kernal for open morphology function
             kernalSize = 11
             kernal = np.ones((kernalSize, kernalSize), np.uint16)
 
+            # Performs dilation on mask making the white area expand (essentially same of bbox padding but for contours)
             mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernal, 10)
 
+            # Crops the orignal coloured images using mask
             shownImage = cv2.bitwise_and(image, image, mask=mask)
 
+            # Finds the closest bounding rect to the largest contour
             x, y, w, h = cv2.boundingRect(largestContour)
 
+            # Pads the bounding rect to account for dilation
             xyxy = padBox(np.array([x, y, x+w, y+h]), 10)
 
+            # Fits bounding rect to image size
             x, y, x1, y1 = fitToImage(xyxy, mask.shape)
 
-            cv2.drawContours(image, [largestContour], -1, (255, 255, 255), 2)
+            if DEBUG:
+                cv2.drawContours(image, [largestContour], -1, (255, 255, 255), 2)
+
+                #cv2.drawContours(imageStack[i][j], contours, -1, (255, 255, 255), 2)
 
             segmentedImages[i].append(shownImage[y:y1, x:x1])
+            cv2.imwrite("imageWithContour.png", image)
+            #segmentedImages[i].append(shownImage)
             bboxes[i].append([x, y, x1, y1])
 
     return [segmentedImages, bboxes]
 
 def GetBGRColours():
+    # Defined the unique colours in bgr values for the keypoints for dw pose specifically
 
     colours = [
         (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
@@ -218,6 +254,7 @@ def GetBGRColours():
         yield colour
 
 def DrawKeypoints(inputStack, keyPointStack, bboxeStack, stride=1, draw=True):
+    # Deprecated: now use model specific draw keypoints function
 
     selectedKeyPoints = []
     
@@ -257,12 +294,15 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, stride=1, draw=True):
 
     return selectedKeyPoints
 
-def SaveImages(imageStack, folderPath="./results"):
+def SaveImages(imageStack, fps, folderPath="./results"):
+    # This saves an images stack to a specific output folder
 
+    # Gets all folders in output folder path with run in the name
     outputPaths = glob.glob(f"{folderPath}/*run*")
 
     max = 0
 
+    # Loops exisitng *run* folders to find the one with the highest number
     for path in outputPaths:
 
         stringDigit = path[path.index("run")+3:]
@@ -276,8 +316,10 @@ def SaveImages(imageStack, folderPath="./results"):
 
     max += 1
 
+    # Makes a new folder wtih the new highest run digit
     os.mkdir(f"{folderPath}/{poseModelImport}run{max}")
 
+    # Loops through each images or video in the stack outputting to an appropriate folder
     for i, images in enumerate(imageStack):
 
         os.mkdir(f"{folderPath}/{poseModelImport}run{max}/ouput{i}")
@@ -286,7 +328,7 @@ def SaveImages(imageStack, folderPath="./results"):
             cv2.imwrite(f"{folderPath}/{poseModelImport}run{max}/ouput{i}/image.jpg", images[0])
         else:
             shape = np.shape(images[0])
-            out = cv2.VideoWriter(f'{folderPath}/{poseModelImport}run{max}/ouput{i}/video.avi', cv2.VideoWriter_fourcc(*'XVID'), 24, (shape[1], shape[0]), True)
+            out = cv2.VideoWriter(f'{folderPath}/{poseModelImport}run{max}/ouput{i}/video.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
@@ -309,9 +351,11 @@ def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
 
 if __name__ == "__main__":
 
-    useMasks = False
+    useMasks = True
     inferenceMode = True
     annotationMode = False
+
+    FPS = 1
 
     inputStack = []
     imageStack = []
@@ -328,9 +372,10 @@ if __name__ == "__main__":
     # Allow a folder to be entered and run this on all files in folder
     # Make sure memory does not get capped out
 
-    #paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
+    #paths = ["/mnt/d/My Drive/Msc Artificial Intelligence/Semester 2/AI R&D/AIR&DProject/Sample Videos/EditedVideos/Auboeck, Start, Freestyle, 26_09_2023 10_17_43_5_Edited.mp4"]
+    #paths = ["/mnt/d/My Drive/Msc Artificial Intelligence/Semester 2/AI R&D/AIR&DProject/Sample Videos/EditedVideoReformed/Auboeck, Start, Freestyle, 26_09_2023 10_17_43_5.mp4"]
     #paths = ["guy.jpeg"]
-    paths = ["Evaluation/evaluationVideo.avi"]
+    #paths = ["Evaluation/evaluationVideo.avi"]
 
     #array = glob.glob("D:\My Drive\Msc Artificial Intelligence\Semester 2\AI R&D\AIR&DProject\Sample Videos\EditedVideos/*.mp4")
 
@@ -338,6 +383,10 @@ if __name__ == "__main__":
     #paths = [path.replace('\\', "/") for path in array]
 
     #paths = paths[60:]
+
+    #paths = ["Evaluation/Video2/evaluationVideo.avi"]
+
+    paths = ["originalFrame.png"]
 
     for path in paths:
         images, strideImages = LoadMediaPath(path, stride)
@@ -350,6 +399,8 @@ if __name__ == "__main__":
     print(f"stride stack length {len(inputStack[0])}")
     print(f"stride stack length 2 {len(imageStack[0][::stride])}")
 
+    startTime = time.perf_counter()
+
     yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
 
     # Need to send yolo segmented images to dwpose model
@@ -357,8 +408,10 @@ if __name__ == "__main__":
 
     segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
 
-    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
+    #SaveImages(segmentedImageStack, FPS)
 
+    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
+    print("Loading Config For Model")
     # Loads the models specific config file
     config = poseModel.LoadConfig()
 
@@ -370,7 +423,14 @@ if __name__ == "__main__":
 
     # Required output format:
     # [[[x, y], [x, y], ...], [[x, y], [x, y], ...], ...], [[x, y], [x, y], ...], [[x, y], [x, y], ...], ...]]
+
+    startTime2 = time.perf_counter()
+
     keyPoints = poseModel.Inference(model, segmentedImageStack, config)
+
+    endTime2 = time.perf_counter()
+
+    print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
 
     # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
     # INPUTS:
@@ -386,7 +446,7 @@ if __name__ == "__main__":
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
     if inferenceMode:
-        SaveImages(imageStack, "./results")
+        SaveImages(imageStack, FPS, "./results")
 
     if annotationMode:
         with open("env.txt", "r") as f:
@@ -402,3 +462,7 @@ if __name__ == "__main__":
                 paths.remove(i)
                 
         SaveVideoAnnotationsToLabelBox(api_key, paths, selectedKeyPoints)
+
+    endTime = time.perf_counter()
+
+    print("Time in seconds for whole pipline: ", (endTime - startTime))

@@ -156,11 +156,13 @@ cython_debug/
 results/*
 ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/*
 ImageSegmentationAndPoseEstimation/DWPoseLib/Models/*
+Evaluation/Video*
 *.jpeg
 *.avi
 *.mp4
 *.jpg
 *.pt
+*.png
 env.txt
 
 # PyCharm
