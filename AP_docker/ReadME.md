@@ -1,7 +1,5 @@
 # AlphaPose
-![alt text](logo.jpg)
-
-
+![logo](https://github.com/Surfytom/Swim2DPose/assets/79398311/99feb768-fb46-4225-8c98-8af8a0a2159c)
 
 
 ## Summary
@@ -14,7 +12,8 @@
 
 ## Preview
 
-![alt text](<demo video.gif>)
+![demo video](https://github.com/Surfytom/Swim2DPose/assets/79398311/b6287106-dce2-46e8-b531-e20d2c378503)
+
 
 ## How to use it
 
