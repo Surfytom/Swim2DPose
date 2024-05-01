@@ -154,8 +154,11 @@ cython_debug/
 
 # Custom Ignores
 results/*
+!results/.gitkeep
 ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/*
+!ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/.gitkeep
 ImageSegmentationAndPoseEstimation/DWPoseLib/Models/*
+!ImageSegmentationAndPoseEstimation/DWPoseLib/Models/.gitkeep
 Evaluation/Video*
 *.jpeg
 *.avi

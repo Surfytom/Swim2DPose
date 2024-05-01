@@ -1,0 +1,28 @@
+FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
+
+WORKDIR /usr/src/app
+
+#get deps   
+RUN echo "Installing dependencies..."
+RUN apt-get update
+RUN apt-get install -y python3
+RUN apt-get install -y python3-pip
+
+#for python api
+RUN pip install --upgrade pip
+
+RUN pip install ultralytics
+
+RUN pip install -U openmim
+RUN mim install mmengine
+RUN mim install "mmcv>=2.0.1"
+RUN mim install "mmpose>=1.1.0"
+
+RUN pip install super-gradients
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt update
+RUN apt-get install -y --no-install-recommends ffmpeg
+
+RUN pip install ffmpeg-python
