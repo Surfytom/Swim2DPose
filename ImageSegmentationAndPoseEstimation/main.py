@@ -434,11 +434,7 @@ if __name__ == "__main__":
         results = yolo.YOLOSegment(yoloModel, inputStack)
 
         segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
-        yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
-        # Need to send yolo segmented images to dwpose model
-        results = yolo.YOLOSegment(yoloModel, inputStack)
 
-        segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if useMasks else BboxSegment(inputStack, results)
         startTime2 = time.perf_counter()
         keyPoints = poseModel.Inference(model, segmentedImageStack, config)
         endTime2 = time.perf_counter()
