@@ -22,13 +22,13 @@ def InitModel(config):
 def LoadConfig(args):
     # Define the container configuration
     return {
-        'image': 'lhlong1/openpose:latest',
+        'image': 'lhlong1/alphapose:latest',
         'detach': True,
         'device_requests': [
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
-        'volumes': {
-            f'{args.inputpaths}': {
+        'volumes': {    
+            f'{args.folder}': {
                 'bind': '/data',
                 'mode': 'rw'
             }
@@ -43,10 +43,11 @@ def Inference(model, videoNames, stopAfterExecuting=True):
 
     for i, videoName in enumerate(videoNames):
         # Runs the model on a set of images returning the keypoints the model detects
-        model.exec_run(cmd=f'./build/examples/openpose/openpose.bin --video "/data/{videoName}.mp4" --display 0 --hand --write_json "{videoName}"  --write_video "{videoName}.avi"')
-        subprocess.run(["docker", "cp", f"{model.id}:/openpose/{videoName}.avi", f'./OpenPoseLib/results/{videoName}.avi'])
-        subprocess.run(["docker", "cp", f"{model.id}:/openpose/{videoName}", f'./OpenPoseLib/keypoints/{videoName}'])
-    
+        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/{videoName}.mp4" --save_video --outdir examples/saved/ --sp --vis_fast')
+        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/AlphaPose_{videoName}.mp4", f'./AlphaPoseLib/results/AlphaPose_{videoName}.mp4'])
+        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/alphapose-results.json", f'./AlphaPoseLib/keypoints/AlphaPose_{videoName}.json'])
+
+
     if stopAfterExecuting == True:
         Stop(model)
         
