@@ -11,8 +11,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt update && DEBIAN_FRONTEND=noninteractive 
     libglib2.0-0\
     libsm6 \
     libxrender1 \
-    libxext6
-    # build-essential autoconf libtool pkg-config python-opengl python-pyrex idle-python2.7 libgle3 python-dev
+    libxext6 \
+    curl 
 
 RUN pip install pip --upgrade
 RUN pip install torch torchvision torchaudio \
@@ -51,9 +51,8 @@ RUN TORCH_CUDA_ARCH_LIST="6.1;7.5;8.6" \
     LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH \
     python3 setup.py build develop --user
 
-RUN mkdir -p detector/yolox/data && \
-    gdown 1G_03v91ckIfi2Wwu_uuMMQ4nHBWoklwn -O detector/yolox/data/yolox_x.pth && \
-    gdown 10QLwqRk334W86KrFuDFXpEw1kbrXHCSP -O pretrained_models/halpe26_fast_res50_256x192.pth && \
-    gdown 1DsottUmO-UODGi_OH6cm1euvSnxmpG2N -O pretrained_models/fast_res50_256x192.pth
+RUN mkdir -p detector/yolox/data && mkdir -p pretrained_models
+RUN curl -o detector/yolox/data/yolox_x.pth -L 'https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_x.pth' && \
+    curl -o pretrained_models/halpe26_fast_res50_256x192.pth -L 'https://drive.usercontent.google.com/download?id=1S-ROA28de-1zvLv-hVfPFJ5tFBYOSITb&export=download&authuser=0&confirm=yes' && \
+    curl -o pretrained_models/fast_res50_256x192.pth -L 'https://drive.usercontent.google.com/download?id=1Bb3kPoFFt-M0Y3ceqNO8DTXi1iNDd4gI&export=download&authuser=0&confirm=yes'
 
-# RUN CC=gcc-9 CXX=g++-9 python3 setup.py build develop --user
