@@ -10,7 +10,7 @@ from mmpose.utils import register_all_modules
 
 register_all_modules()
 
-def LoadConfig():
+def LoadConfig(args):
     with open("ImageSegmentationAndPoseEstimation/DWPoseLib/config.json", "r") as f:
         config = json.load(f)
         

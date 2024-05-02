@@ -19,7 +19,7 @@ def InitModel(config):
     # container.stop()
     return container
 
-def LoadConfig():
+def LoadConfig(args):
     # Define the container configuration
     return {
         'image': 'lhlong1/openpose:latest',
@@ -28,7 +28,7 @@ def LoadConfig():
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
         'volumes': {
-            '/home/student/horizon-coding/Swim2DPose/data': {
+            f'{args.inputpaths}': {
                 'bind': '/data',
                 'mode': 'rw'
             }
