@@ -11,6 +11,7 @@ RUN apt-get install -y python3-pip
 RUN pip install --upgrade pip
 
 RUN apt-get install -y curl
+RUN apt-get install -y git
 
 # YOLO
 RUN pip install ultralytics
@@ -24,20 +25,16 @@ RUN mim install "mmpose>=1.1.0"
 # YoloNasNet
 RUN pip install super-gradients
 
-#ENV DEBIAN_FRONTEND=noninteractive
-
 #RUN apt update
 RUN apt-get install -y --no-install-recommends ffmpeg
 
 RUN pip install ffmpeg-python
 
-RUN apt-get install -y git
-
 WORKDIR /usr/src/app
 
 RUN git clone https://github.com/Surfytom/Swim2DPose
 
-WORKDIR /Swim2DPose
+WORKDIR /usr/src/app/Swim2DPose
 
 # Downloads weights for dw pose large model
 RUN curl -o ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeModel.pth -L 'https://drive.usercontent.google.com/download?id=1Oy9O18cYk8Dk776DbxpCPWmJtJCl-OCm&export=download&authuser=0&confirm=yes'
