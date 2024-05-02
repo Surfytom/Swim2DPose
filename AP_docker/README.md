@@ -42,7 +42,7 @@ python3 scripts/demo_inference.py --detector yolox-x --cfg configs/coco/resnet/2
 [Link](dockerfile) to the main dockerfile.
 
 
-### How to fine-tune AlphaPose models
+### How to use different pre-trained models
 
 1. Download the object detection model. Place them into `detector` 
 ```.c
@@ -57,9 +57,9 @@ gdown 10QLwqRk334W86KrFuDFXpEw1kbrXHCSP -O pretrained_models/halpe26_fast_res50_
 # For MSCOCO dataset
 gdown 1DsottUmO-UODGi_OH6cm1euvSnxmpG2N -O pretrained_models/fast_res50_256x192.pth
 ```
-You can fine-tune more using the flags listed in the [link](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/run.md) here
+Find out more [link](https://github.com/MVIG-SJTU/AlphaPose/blob/master/docs/run.md) here.
 
-### How to train AlphaPose model
+### How to train AlphaPose
 
 If you want to train the model by yourself, please download data from [MSCOCO](https://cocodataset.org/#download) (train2017 and val2017). Download and extract them under ./data, and make them look like this:
 
