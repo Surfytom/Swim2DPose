@@ -15,37 +15,37 @@ if __name__ == "__main__":
 
     parser.add_argument('-fo', "--folder", help='Use this flag to specify input folder path')
     parser.add_argument('-i', "--inputpaths", nargs="+", help='Use this flag to specify input paths (can be multiple)')
-    parser.add_argument('-ms', "--mask", help='if this flag is set masking based segmentation is used instead of bounding boxes', action='store_true', default=True)
+    parser.add_argument('-msk', "--mask", help='if this flag is set masking based segmentation is used instead of bounding boxes', action='store_true', default=True)
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
 
-    parser.add_argument('-l', "--label", help='this flag enables annotation upload to labelbox (only DWPose is supported for now) | Please use -labelkey, -labelprojname or -labelprojkey and -labelont (if using -labelprojname) with this flag', action='store_true', default=False)
+    parser.add_argument('-l', "--label", help='this flag enables annotation upload to labelbox (only DWPose is supported for now) | Please use -lk, -lpn or -lpk and -lont (if using -lpn) with this flag', action='store_true', default=False)
     parser.add_argument('-lk', "--labelkey", help='-label this flag enables annotation upload to labelbox (only DWPose is supported for now)')
-    parser.add_argument('-lo', "--labelont", help='defines ontology key to use when uploading annotations REQUIRED WHEN USING -label, -labelkey and  -labelprojname')
-    parser.add_argument('-lpn', "--labelprojname", help='defines project name. Used when wanting to create a new project REQUIRES -label, -labelkey and -labelont to be used with it')
+    parser.add_argument('-lont', "--labelont", help='defines ontology key to use when uploading annotations REQUIRED WHEN USING -l, -lk and  -lpn')
+    parser.add_argument('-lpn', "--labelprojname", help='defines project name. Used when wanting to create a new project REQUIRES -l, -lk and -lont to be used with it')
     parser.add_argument('-lpk', "--labelprojkey", help='defines project key REQUIRES -label and -labelkey to be used with it')
 
     args = parser.parse_args()
 
     if(not args.folder and not args.inputpaths):
-        raise RuntimeError("ERROR: Please include either a folder (-folder) or a set of input paths (-inputpaths) to use as input to the pipeline")
+        raise RuntimeError("ERROR: Please include either a folder (-fo) or a set of input paths (-i) to use as input to the pipeline")
 
     if (args.label):
         if (not args.labelkey):
-            raise RuntimeError("ERROR: When using -label -labelkey, -labelprojname or -labelprojkey and -labelont (if using -labelprojname) are required")
+            raise RuntimeError("ERROR: When using -l -lk, -lpn or -lpk and -lo (if using -lpn) are required")
         if (not args.labelprojname and not args.labelprojkey):
-            raise RuntimeError("ERROR: When using -label and -labelkey either -labelprojname or -labelprojkey is needed to create or use a project as well as -labelont for defining ontology")
+            raise RuntimeError("ERROR: When using -l and -lk either -lpn or -labelprojkey is needed to create or use a project as well as -lont for defining ontology")
         if (args.labelprojname and args.labelprojkey):
-            raise RuntimeError("ERROR: Both -labelprojname and -labelprojkey cannot be used together please select one (key if project is exising | name for new project)")
+            raise RuntimeError("ERROR: Both -lpn and -labelprojkey cannot be used together please select one (key if project is exising | name for new project)")
         if (args.labelprojname and not args.labelont):
-            raise RuntimeError("ERROR: Creating a new project with -labelprojname cannot be used with defining an ontology for the project with -labelont")
+            raise RuntimeError("ERROR: Creating a new project with -lpk cannot be used with defining an ontology for the project with -labelont")
 
     print(args.folder)
     print(args.inputpaths)
     print(args.label)
     print(args.mask)
-    # print(args.fps)
+    print(args.fps)
     print(args.model)
-    # print(args.save)
+    print(args.save)
 
     if args.model == "DWPose":
         import DWPoseLib.DwPose as poseModel
