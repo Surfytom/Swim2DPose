@@ -373,6 +373,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    if(not args.folder and not args.inputpaths):
+        raise RuntimeError("ERROR: Please include either a folder (-folder) or a set of input paths (-inputpaths) to use as input to the pipeline")
+
     if (args.label):
         if (not args.labelkey):
             raise RuntimeError("ERROR: When using -label -labelkey, -labelprojname or -labelprojkey and -labelont (if using -labelprojname) are required")
@@ -442,11 +445,6 @@ if __name__ == "__main__":
     # This function initialises and return a model with a weight and config path
     model = poseModel.InitModel(config)
 
-    # This function runs the model and gets a result in the format
-    # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-
-    # Required output format:
-    # [[[x, y], [x, y], ...], [[x, y], [x, y], ...], ...], [[x, y], [x, y], ...], [[x, y], [x, y], ...], ...]]
     if args.model == "DWPose":
         startTime = time.perf_counter()
 
@@ -458,26 +456,33 @@ if __name__ == "__main__":
         segmentedImageStack, Bboxes = MaskSegment(inputStack, results) if args.mask else BboxSegment(inputStack, results)
 
         startTime2 = time.perf_counter()
+
+        # This function runs the model and gets a result in the format
+        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
         keyPoints = poseModel.Inference(model, segmentedImageStack, config)
+
         endTime2 = time.perf_counter()
         print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
 
     elif args.model == "OpenPose":
         print(fileNames)
+        # This function runs the model and gets a result in the format
+        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
         keyPoints = poseModel.Inference(model, fileNames)
     elif args.model == "AlphaPose":
         print("AlphaPose implementation")
-    # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
-    # INPUTS:
-    #   inputStack      : array of images         [[frames], [frames], ...]
-    #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
-    #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
-    #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
-    #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
-    #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
-    #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
+    
 
     if args.model != "OpenPose" or args.model != "AlphaPose":
+        # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
+        # INPUTS:
+        #   inputStack      : array of images         [[frames], [frames], ...]
+        #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
+        #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
+        #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
+        #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
+        #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
+        #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
         selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, stride, True, True, True, True)
 
         # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
