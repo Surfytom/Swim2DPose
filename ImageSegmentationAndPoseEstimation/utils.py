@@ -6,13 +6,15 @@ import LabelBoxApi as labelBox
 
 def GetFileNames(directory):
     file_names = []
+    file_name_without_extensions = []
     # List all files and directories in the specified directory
     for file in os.listdir(directory):
         # Check if the path is a file (not a directory)
         if os.path.isfile(os.path.join(directory, file)):
             file_name_without_extension, _ = os.path.splitext(file)
-            file_names.append(file_name_without_extension)
-    return file_names
+            file_names.append(file)
+            file_name_without_extensions.append(file_name_without_extension)
+    return file_names, file_name_without_extensions
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
  

@@ -86,7 +86,7 @@ if __name__ == "__main__":
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
     # Get the file names in the directory
-    fileNames = utils.GetFileNames(path)
+    fileNames, fileNamesWithoutExtension = utils.GetFileNames(path)
 
     print("File names in the directory:")
     print(fileNames)
@@ -131,10 +131,10 @@ if __name__ == "__main__":
         print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
 
     elif args.model == "OpenPose" or args.model == "AlphaPose":
-        print(fileNames)
+        print(fileNamesWithoutExtension)
         # This function runs the model and gets a result in the format
         # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-        keyPoints = poseModel.Inference(model, fileNames)
+        keyPoints = poseModel.Inference(model, fileNamesWithoutExtension)
     
 
     if args.model != "OpenPose" or args.model != "AlphaPose":
