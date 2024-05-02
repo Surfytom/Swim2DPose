@@ -4,6 +4,8 @@ import os
 import glob
 import LabelBoxApi as labelBox
 
+DEBUG = True
+
 def GetFileNames(directory):
     file_names = []
     file_name_without_extensions = []

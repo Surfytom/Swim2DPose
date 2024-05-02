@@ -9,19 +9,6 @@ import time
 import argparse
 import utils
 
-# If set to true debug statements will be printed
-DEBUG = True
-
-# Potentially a solution to implemeting different models
-# This means only the required model library is loaded
-# It requires a new condition to be added for each model
-# It requires the imported file to have the required function 
-poseModelImport = "DWPose"
-
-# Imports the specific pose model specified
-
-# Problems when results from yolo model returns None current fix relies on first frame having a value to copy
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -68,6 +55,7 @@ if __name__ == "__main__":
         import OpenPoseLib.OpenPoseModel as poseModel
     if args.model == "AlphaPose":
         import AlphaPoseLib.AlphaPoseModel as poseModel
+    
     inputStack = []
     imageStack = []
     stride = 1
@@ -111,7 +99,7 @@ if __name__ == "__main__":
     # This function initialises and return a model with a weight and config path
     model = poseModel.InitModel(config)
 
-    if args.model == "DWPose":
+    if args.model == "DWPose" or args.model == "YoloNasNet":
         startTime = time.perf_counter()
 
         yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
@@ -130,14 +118,6 @@ if __name__ == "__main__":
         endTime2 = time.perf_counter()
         print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
 
-    elif args.model == "OpenPose" or args.model == "AlphaPose":
-        print(fileNamesWithoutExtension)
-        # This function runs the model and gets a result in the format
-        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-        keyPoints = poseModel.Inference(model, fileNamesWithoutExtension)
-    
-
-    if args.model != "OpenPose" or args.model != "AlphaPose":
         # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
         # INPUTS:
         #   inputStack      : array of images         [[frames], [frames], ...]
@@ -166,3 +146,9 @@ if __name__ == "__main__":
                     paths.remove(i)
                     
             utils.SaveVideoAnnotationsToLabelBox(api_key, paths, selectedKeyPoints)
+
+    elif args.model == "OpenPose" or args.model == "AlphaPose":
+        print(fileNamesWithoutExtension)
+        # This function runs the model and gets a result in the format
+        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+        keyPoints = poseModel.Inference(model, fileNamesWithoutExtension)
