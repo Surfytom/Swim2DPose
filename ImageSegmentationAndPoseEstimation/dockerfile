@@ -30,6 +30,9 @@ RUN apt-get install -y --no-install-recommends ffmpeg
 
 RUN pip install ffmpeg-python
 
+# Label Box API
+RUN pip install "labelbox[data]"
+
 WORKDIR /usr/src/app
 
 RUN git clone https://github.com/Surfytom/Swim2DPose
