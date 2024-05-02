@@ -1,10 +1,6 @@
 import YoloUltralyticsLib.Yolo as yolo
-import cv2
-import numpy as np
-import os
 from torch import cuda
 import json
-import glob
 import time
 import argparse
 import utils
@@ -17,12 +13,17 @@ if __name__ == "__main__":
     parser.add_argument('-i', "--inputpaths", nargs="+", help='Use this flag to specify input paths (can be multiple)')
     parser.add_argument('-msk', "--mask", help='if this flag is set masking based segmentation is used instead of bounding boxes', action='store_true', default=True)
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
+    parser.add_argument('-fps', "--fps", help="sets the frames per second of the output videos. Default is 24", default=24)
+    parser.add_argument('-str', "--stride", help="stride of video loader (if set > 1 only processes frame every set frame. E.g 2 means only every 2 frames are processed). Default is 1", default=1)
+    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is './results'", default="./results")
 
     parser.add_argument('-l', "--label", help='this flag enables annotation upload to labelbox (only DWPose is supported for now) | Please use -lk, -lpn or -lpk and -lont (if using -lpn) with this flag', action='store_true', default=False)
     parser.add_argument('-lk', "--labelkey", help='-label this flag enables annotation upload to labelbox (only DWPose is supported for now)')
     parser.add_argument('-lont', "--labelont", help='defines ontology key to use when uploading annotations REQUIRED WHEN USING -l, -lk and  -lpn')
     parser.add_argument('-lpn', "--labelprojname", help='defines project name. Used when wanting to create a new project REQUIRES -l, -lk and -lont to be used with it')
-    parser.add_argument('-lpk', "--labelprojkey", help='defines project key REQUIRES -label and -labelkey to be used with it')
+    parser.add_argument('-lpk', "--labelprojkey", help='defines project key REQUIRES -l and -lk to be used with it')
+    parser.add_argument('-ldk', "--labeldskey", help='defines project key REQUIRES -l and -lk to be used with it')
+    parser.add_argument('-ldn', "--labeldsname", help='defines project key REQUIRES -l and -lk to be used with it')
 
     args = parser.parse_args()
 
@@ -32,12 +33,19 @@ if __name__ == "__main__":
     if (args.label):
         if (not args.labelkey):
             raise RuntimeError("ERROR: When using -l -lk, -lpn or -lpk and -lo (if using -lpn) are required")
+        
         if (not args.labelprojname and not args.labelprojkey):
-            raise RuntimeError("ERROR: When using -l and -lk either -lpn or -labelprojkey is needed to create or use a project as well as -lont for defining ontology")
+            raise RuntimeError("ERROR: When using -l and -lk either -lpn or -lpk is needed to create or use a project as well as -lont for defining ontology")
         if (args.labelprojname and args.labelprojkey):
-            raise RuntimeError("ERROR: Both -lpn and -labelprojkey cannot be used together please select one (key if project is exising | name for new project)")
+            raise RuntimeError("ERROR: Both -lpn and -lpk cannot be used together please select one (key if project is exising | name for new project)")
+        
+        if (not args.labeldsname and not args.labeldskey):
+            raise RuntimeError("ERROR: When using -l and -lk either -ldn or -ldk is needed to create or use a dataset as well as -lont for defining ontology")
+        if (args.labeldsname and args.labeldskey):
+            raise RuntimeError("ERROR: Both -ldn and -ldk cannot be used together please select one (key if dataset is exising | name for new dataset)")
+        
         if (args.labelprojname and not args.labelont):
-            raise RuntimeError("ERROR: Creating a new project with -lpk cannot be used with defining an ontology for the project with -labelont")
+            raise RuntimeError("ERROR: Creating a new project with -lpk cannot be used with defining an ontology for the project with -lont")
 
     print(args.folder)
     print(args.inputpaths)
@@ -46,6 +54,7 @@ if __name__ == "__main__":
     print(args.fps)
     print(args.model)
     print(args.save)
+    print(args.stride)
 
     if args.model == "DWPose":
         import DWPoseLib.DwPose as poseModel
@@ -55,21 +64,9 @@ if __name__ == "__main__":
         import OpenPoseLib.OpenPoseModel as poseModel
     if args.model == "AlphaPose":
         import AlphaPoseLib.AlphaPoseModel as poseModel
-    
-    inputStack = []
-    imageStack = []
-    stride = 1
 
     print("Cuda Available: ", cuda.is_available())
-
-    if args.model != "OpenPose" and args.model != "AlphaPose":
-        with open("keypointGroupings.json", "r") as f:
-            keypointGroups = json.load(f)
-
-        selectedPoints = keypointGroups[args.model]
-        print(selectedPoints)
-
-    #paths = ["Auboeck, Start, Freestyle, 11_07_2023 10_10_20_5_Edited.mp4"]
+    
     paths = []
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
@@ -79,20 +76,23 @@ if __name__ == "__main__":
     print("File names in the directory:")
     print(fileNames)
 
+    inputStack = []
+    imageStack = []
+
     for fileName in fileNames:
-        images, strideImages = utils.LoadMediaPath(f'{path}/{fileName}', stride)
+        images, strideImages = utils.LoadMediaPath(f'{path}/{fileName}', args.stride)
         paths.append(f'{path}/{fileName}')
-        inputStack.append(images if stride == 1 else strideImages)
+        inputStack.append(images if args.stride == 1 else strideImages)
         imageStack.append(images)
 
         print(f"path: {path}\nFrame Count: {len(images)}\n")
 
     print(f"Image stack length {len(imageStack[0])}")
-    print(f"stride stack length {len(inputStack[0])}")
-    print(f"stride stack length 2 {len(imageStack[0][::stride])}")
+    print(f"stride {args.stride} stack length {len(inputStack[0])}")
 
+    print(f"Loading Config For {args.model}")
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
-    print("Loading Config For Model")
+
     # Loads the models specific config file
     config = poseModel.LoadConfig(args)
 
@@ -100,6 +100,12 @@ if __name__ == "__main__":
     model = poseModel.InitModel(config)
 
     if args.model == "DWPose" or args.model == "YoloNasNet":
+
+        with open("keypointGroupings.json", "r") as f:
+            keypointGroups = json.load(f)
+
+        selectedPoints = keypointGroups[args.model]
+
         startTime = time.perf_counter()
 
         yoloModel = yolo.InitModel("ImageSegmentationAndPoseEstimation/YoloUltralyticsLib/Models/yolov8x-seg.pt")
@@ -128,24 +134,26 @@ if __name__ == "__main__":
         #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
         #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
         #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
-        selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, stride, True, True, True)
+        selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
 
         # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
         if args.save:
-            utils.SaveImages(imageStack, args.fps, args.model, "./results")
+            utils.SaveImages(imageStack, args.fps, args.model, args.save)
 
         if args.label:
-            with open("env.txt", "r") as f:
-                api_key = f.read().split("=")[1]
-
-            print(paths)
 
             for i, input in enumerate(imageStack):
                 if len(input) <= 1:
                     paths.remove(i)
+
+            datasetKeyorName = args.labeldskey if args.labeldskey else args.labeldsname
+            datasetExisting = True if args.labeldskey else False
+
+            projectKeyorName = args.labelprojkey if args.labelprojkey else args.labelprojname
+            projectExisting = True if args.labelprojkey else False
                     
-            utils.SaveVideoAnnotationsToLabelBox(api_key, paths, selectedKeyPoints)
+            utils.SaveVideoAnnotationsToLabelBox(args.lk, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, paths, selectedKeyPoints)
 
     elif args.model == "OpenPose" or args.model == "AlphaPose":
         print(fileNamesWithoutExtension)

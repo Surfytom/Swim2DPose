@@ -9,13 +9,24 @@ DEBUG = True
 def GetFileNames(directory):
     file_names = []
     file_name_without_extensions = []
-    # List all files and directories in the specified directory
-    for file in os.listdir(directory):
+
+    files = []
+
+    if type(directory == str):
+        # List all files and directories in the specified directory
+        files = os.listdir(directory)
+    elif type(directory == list):
+        files = directory
+    
+    for file in files:
         # Check if the path is a file (not a directory)
         if os.path.isfile(os.path.join(directory, file)):
             file_name_without_extension, _ = os.path.splitext(file)
-            file_names.append(file)
-            file_name_without_extensions.append(file_name_without_extension)
+
+            if (_ == "avi" or _ == "mp4" or _ == "png" or _ == "jpeg"):
+                file_names.append(file)
+                file_name_without_extensions.append(file_name_without_extension)
+
     return file_names, file_name_without_extensions
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
@@ -329,14 +340,14 @@ def SaveImages(imageStack, fps, poseModel, folderPath="./results"):
 
     print(f"Outputs saved to {folderPath}/{poseModel}run{max}")
 
-def SaveVideoAnnotationsToLabelBox(apiKey, videoPaths, frameKeyPoints):
+def SaveVideoAnnotationsToLabelBox(apiKey, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, videoPaths, frameKeyPoints):
 
     client = labelBox.InitializeClient(apiKey)
 
-    dataset = labelBox.InitializeDataset(client, "cltg7575t00130777sf5z3iqf", existing=True)
+    dataset = labelBox.InitializeDataset(client, datasetKeyorName, existing=datasetExisting)
 
     labelBox.AddToDataset(dataset, videoPaths)
 
-    project = labelBox.InitializeProject(client, "cltgaepru05ti07z087w5bm2e", videoPaths, True)
+    project = labelBox.InitializeProject(client, projectKeyorName, videoPaths, existing=projectExisting)
 
     labelBox.AddAnnotations(client, project.uid, videoPaths, frameKeyPoints)
