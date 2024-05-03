@@ -14,13 +14,13 @@ def GetFileNames(directory):
 
     if type(directory == str):
         # List all files and directories in the specified directory
-        files = os.listdir(directory)
+        files = glob.glob(f"{directory}/*")
     elif type(directory == list):
         files = directory
     
     for file in files:
         # Check if the path is a file (not a directory)
-        if os.path.isfile(os.path.join(directory, file)):
+        if os.path.isfile(file):
             file_name_without_extension, _ = os.path.splitext(file)
 
             if (_ == "avi" or _ == "mp4" or _ == "png" or _ == "jpeg"):
