@@ -17,16 +17,13 @@ def GetFileNames(directory):
         files = glob.glob(f"{directory}/*")
     elif type(directory == list):
         files = directory
-    
     for file in files:
-        # Check if the path is a file (not a directory)
-        if os.path.isfile(file):
+        # Check if the path is a file (not a directory) or a file name
+        if os.path.isfile(file) or type(file == str):
             file_name_without_extension, _ = os.path.splitext(file)
-
-            if (_ == "avi" or _ == "mp4" or _ == "png" or _ == "jpeg"):
+            if (_ == ".avi" or _ == ".mp4" or _ == ".png" or _ == ".jpeg"):
                 file_names.append(file)
                 file_name_without_extensions.append(file_name_without_extension)
-
     return file_names, file_name_without_extensions
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
