@@ -1,4 +1,0 @@
-{
-    "modelWeightPath": "ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeModel.pth",
-    "modelConfigPath": "ImageSegmentationAndPoseEstimation/DWPoseLib/Models/384x288DWPoseLargeConfig.py"
-}

@@ -11,7 +11,7 @@ from mmpose.utils import register_all_modules
 register_all_modules()
 
 def LoadConfig(args):
-    with open("ImageSegmentationAndPoseEstimation/DWPoseLib/config.json", "r") as f:
+    with open("Pipeline/DWPoseLib/config.json", "r") as f:
         config = json.load(f)
         
     return config

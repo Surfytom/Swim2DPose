@@ -6,7 +6,7 @@ import json
 from super_gradients.training import models
 
 def LoadConfig():
-    with open("ImageSegmentationAndPoseEstimation/YoloNasNetLib/config.json", "r") as f:
+    with open("Pipeline/YoloNasNetLib/config.json", "r") as f:
         config = json.load(f)
         
     return config
