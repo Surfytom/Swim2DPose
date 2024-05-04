@@ -1,6 +1,6 @@
 # Swim2DPose
 
-This is a repository for a university group project. This project contains a pipeline that can take a set of input images/videos and output the same videos with pose estimation annoations on them. We provide 4 models/libraries integrated into the pipeline. We also provide details on how to add your own pose estimation models to the pipeline.
+This is a repository for a university group project. This project contains a pipeline that can take a set of input images/videos and output the same videos with pose estimation annotations on them. We provide 4 models/libraries integrated into the pipeline. We also provide details on how to add your own pose estimation models to the pipeline.
 
 ## Contents
 
@@ -34,7 +34,7 @@ Before you pull the images **please make sure you have enough disk space availab
 
 #### Pipeline Docker Image (~20GB)
 
-Pull the pipeline docker image from docker hub user this command:
+Pull the pipeline docker image from Docker Hub using this command:
 
 ```
 Write command to pull pipeline image
