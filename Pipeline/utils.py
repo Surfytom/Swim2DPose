@@ -3,6 +3,7 @@ import numpy as np
 import os
 import glob
 import LabelBoxApi as labelBox
+import datetime
 
 DEBUG = True
 
@@ -23,7 +24,7 @@ def GetFileNames(directory):
             file_name_without_extension, _ = os.path.splitext(os.path.basename(file).split('/')[-1])
             if (_ == ".avi" or _ == ".mp4" or _ == ".png" or _ == ".jpeg"):
                 file_names.append(file)
-                file_name_without_extensions.append(file_name_without_extension)
+                file_name_without_extensions.append({'name': file_name_without_extension, 'ext': _})
     return file_names, file_name_without_extensions
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
@@ -332,21 +333,20 @@ def SaveImages(imageStack, fps, poseModel, folderPath):
 
         images = item['images']
         name = item['name']
-        if os.path.exists(f"{folderPath}/{poseModel}/run_{max}") == False:
-            os.mkdir(f"{folderPath}/{poseModel}/run_{max}")
 
         if len(images) == 1:
-            cv2.imwrite(f"{folderPath}/{poseModel}run_{max}/{name}.jpg", images[0])
+            cv2.imwrite(f"{folderPath}/{poseModel}/{name}.jpg", images[0])
         else:
             shape = np.shape(images[0])
-            out = cv2.VideoWriter(f'{folderPath}/{poseModel}/run_{max}/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
+            dateFormat = "%m-%d-%Y"
+            out = cv2.VideoWriter(f'{folderPath}/{poseModel}/{name}_{datetime.datetime.now().strftime(dateFormat)}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
 
             out.release()
 
-    print(f"Outputs saved to {folderPath}/{poseModel}/run_{max}")
+    print(f"Outputs saved to {folderPath}/{poseModel}/{name}_{datetime.datetime.now().strftime(dateFormat)}.avi")
 
 def SaveVideoAnnotationsToLabelBox(apiKey, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, videoPaths, frameKeyPoints):
 

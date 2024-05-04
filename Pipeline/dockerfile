@@ -28,7 +28,7 @@ RUN pip install super-gradients
 #RUN apt update
 RUN apt-get install -y --no-install-recommends ffmpeg
 
-RUN pip install ffmpeg-python
+RUN pip install ffmpeg-python docker
 
 # Label Box API
 RUN pip install "labelbox[data]"

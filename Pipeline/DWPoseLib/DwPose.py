@@ -11,15 +11,20 @@ from mmpose.utils import register_all_modules
 
 register_all_modules()
 
-def LoadConfig(args):
-    with open(f"{pathlib.Path(__file__).parent.resolve()}/config.json", "r") as f:
+def LoadConfig(currentPath):
+    print(currentPath)
+    with open(f"{currentPath}/DWPoseLib/config.json", "r") as f:
         config = json.load(f)
-        
+        config['currentPath'] = currentPath
+        print('config: ', config)
     return config
 
 def InitModel(config):
     # Simply creates and return a model based on a weight and config file path
-    return init_model(f'{pathlib.Path(__file__).parent.resolve()/config["modelConfigPath"]}', f'{pathlib.Path(__file__).parent.resolve()/config["modelWeightPath"]}', device='cuda:0' if torch.cuda.is_available() else 'cpu')  # or device='cuda:0'
+    configPath = config["modelConfigPath"]
+    weightPath = config["modelWeightPath"]
+    currentPath = config['currentPath']
+    return init_model(f'{currentPath}/DWPoseLib/{configPath}', f'{currentPath}/DWPoseLib/{weightPath}', device='cuda:0' if torch.cuda.is_available() else 'cpu')  # or device='cuda:0'
     
 def Inference(model, imageStack, bboxes, config):
     # Runs the model on a set of images returning the keypoints the model detects

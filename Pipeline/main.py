@@ -77,7 +77,7 @@ if __name__ == "__main__":
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
     # Get the file names in the directory
-    fileNames, fileNamesWithoutExtension = utils.GetFileNames(path)
+    fileNames, fileNamesAndExtensions = utils.GetFileNames(path)
 
     print("File names in the directory:")
     print(fileNames)
@@ -88,8 +88,8 @@ if __name__ == "__main__":
     for i, fileName in enumerate(fileNames):
         images, strideImages = utils.LoadMediaPath(f'{fileName}', args.stride)
         paths.append(f'{path}/{fileName}')
-        inputStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] } if args.stride == 1 else { images: strideImages, 'name': fileNamesWithoutExtension[i] })
-        imageStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] })
+        inputStack.append({ 'images': images, 'name': fileNamesAndExtensions[i]['name'] } if args.stride == 1 else { images: strideImages, 'name': fileNamesAndExtensions[i]['name'] })
+        imageStack.append({ 'images': images, 'name': fileNamesAndExtensions[i]['name'] })
 
         print(f"path: {fileName}\nFrame Count: {len(images)}\n")
 
@@ -97,72 +97,81 @@ if __name__ == "__main__":
     print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
 
     print(f"Loading Config For {args.model}")
-    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
     # Loads the models specific config file
-    config = poseModel.LoadConfig(args)
+    config = poseModel.LoadConfig(currentPath)
 
     # This function initialises and return a model with a weight and config path
     model = poseModel.InitModel(config)
 
+    # if args.model == "DWPose" or args.model == "YoloNasNet":
+
+    with open("keypointGroupings.json", "r") as f:
+        keypointGroups = json.load(f)
+
+    selectedPoints = keypointGroups[args.model]
+
+    startTime = time.perf_counter()
+
+    yoloModel = yolo.InitModel("Pipeline/YoloUltralyticsLib/Models/yolov8x-seg.pt")
+
+    # Need to send yolo segmented images to dwpose model
+    results = yolo.YOLOSegment(yoloModel, inputStack)
+
+    segmentedImageStack, Bboxes = utils.MaskSegment(inputStack, results) if args.mask else utils.BboxSegment(inputStack, results)
+
+    if args.model == "OpenPose" or args.model == "AlphaPose":
+        utils.SaveImages(segmentedImageStack, args.fps, args.model, f'{currentPath}/SegmentedVideos')
+
+
+    startTime2 = time.perf_counter()
+
+    # This function runs the model and gets a result in the format
+    # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+    print(args.model)
     if args.model == "DWPose" or args.model == "YoloNasNet":
-
-        with open("keypointGroupings.json", "r") as f:
-            keypointGroups = json.load(f)
-
-        selectedPoints = keypointGroups[args.model]
-
-        startTime = time.perf_counter()
-
-        yoloModel = yolo.InitModel("Pipeline/YoloUltralyticsLib/Models/yolov8x-seg.pt")
-
-        # Need to send yolo segmented images to dwpose model
-        results = yolo.YOLOSegment(yoloModel, inputStack)
-
-        segmentedImageStack, Bboxes = utils.MaskSegment(inputStack, results) if args.mask else utils.BboxSegment(inputStack, results)
-
-        startTime2 = time.perf_counter()
-
-        # This function runs the model and gets a result in the format
-        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-        keyPoints = poseModel.Inference(model, segmentedImageStack, config)
-
-        endTime2 = time.perf_counter()
-        print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
-
-        # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
-        # INPUTS:
-        #   inputStack      : array of images         [[frames], [frames], ...]
-        #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
-        #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
-        #   selectedPoints  : array of selected points
-        #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
-        #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
-        #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
-        #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
-        selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
-
-        # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
-
-        if args.save:
-            utils.SaveImages(imageStack, args.fps, args.model, args.save)
-
-        if args.label:
-
-            for i, input in enumerate(imageStack):
-                if len(input) <= 1:
-                    paths.remove(i)
-
-            datasetKeyorName = args.labeldskey if args.labeldskey else args.labeldsname
-            datasetExisting = True if args.labeldskey else False
-
-            projectKeyorName = args.labelprojkey if args.labelprojkey else args.labelprojname
-            projectExisting = True if args.labelprojkey else False
-                    
-            utils.SaveVideoAnnotationsToLabelBox(args.lk, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, paths, selectedKeyPoints)
-
+        keyPoints = poseModel.Inference(model, segmentedImageStack, Bboxes, config)
     elif args.model == "OpenPose" or args.model == "AlphaPose":
-        print(fileNamesWithoutExtension)
-        # This function runs the model and gets a result in the format
-        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-        keyPoints = poseModel.Inference(model, fileNamesWithoutExtension)
+        _, inputFileNamesAndExts = utils.GetFileNames(f'{currentPath}/SegmentedVideos/{args.model}')
+        # inputFileNames = [f"{item['name']}.{item['ext']}" for item in inputFileNamesAndExts]
+        keyPoints = poseModel.Inference(model, inputFileNamesAndExts)
+    
+    endTime2 = time.perf_counter()
+    print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
+
+    # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
+    # INPUTS:
+    #   inputStack      : array of images         [[frames], [frames], ...]
+    #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
+    #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
+    #   selectedPoints  : array of selected points
+    #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
+    #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
+    #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
+    #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
+    # selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
+
+    # # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
+
+    # # if args.save:
+    # #     utils.SaveImages(imageStack, args.fps, args.model, args.save)
+
+    # if args.label:
+
+    #     for i, input in enumerate(imageStack):
+    #         if len(input) <= 1:
+    #             paths.remove(i)
+
+    #     datasetKeyorName = args.labeldskey if args.labeldskey else args.labeldsname
+    #     datasetExisting = True if args.labeldskey else False
+
+    #     projectKeyorName = args.labelprojkey if args.labelprojkey else args.labelprojname
+    #     projectExisting = True if args.labelprojkey else False
+                
+    #     utils.SaveVideoAnnotationsToLabelBox(args.lk, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, paths, selectedKeyPoints)
+
+    # elif args.model == "OpenPose" or args.model == "AlphaPose":
+    #     print(fileNamesWithoutExtension)
+    #     # This function runs the model and gets a result in the format
+    #     # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+    #     keyPoints = poseModel.Inference(model, fileNamesWithoutExtension)

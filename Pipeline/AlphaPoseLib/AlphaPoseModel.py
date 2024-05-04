@@ -1,11 +1,10 @@
 import subprocess
 import sys
-
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
-install("docker")
+import cv2
+import numpy as np
+import json
 import docker
+
 client = docker.from_env()
 
 def InitModel(config):    
@@ -19,7 +18,7 @@ def InitModel(config):
     # container.stop()
     return container
 
-def LoadConfig(args):
+def LoadConfig(currentPath):
     # Define the container configuration
     return {
         'image': 'lhlong1/alphapose:latest',
@@ -28,7 +27,7 @@ def LoadConfig(args):
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
         'volumes': {    
-            f'{args.folder}': {
+            f'{currentPath}/SegmentedVideos/AlphaPose': {
                 'bind': '/data',
                 'mode': 'rw'
             }
@@ -40,19 +39,105 @@ def LoadConfig(args):
 def Inference(model, videoNames, stopAfterExecuting=True):
 
     allKeyPoints = []
+    print(videoNames)
+    for i, video in enumerate(videoNames):
+        videoNameAndExt = video['name'] + video['ext']
+        videoName = video['name']
 
-    for i, videoName in enumerate(videoNames):
         # Runs the model on a set of images returning the keypoints the model detects
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/{videoName}.mp4" --save_video --outdir examples/saved/ --sp --vis_fast')
-        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/AlphaPose_{videoName}.mp4", f'./AlphaPoseLib/results/AlphaPose_{videoName}.mp4'])
-        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/alphapose-results.json", f'./AlphaPoseLib/keypoints/AlphaPose_{videoName}.json'])
-
+        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/{videoNameAndExt}" --save_video --outdir examples/saved/ --sp --vis_fast' )
+        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/AlphaPose_{videoNameAndExt}", f"./AlphaPoseLib/results/AlphaPose_{videoNameAndExt}" ])
+        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/alphapose-results.json", f"./AlphaPoseLib/keypoints/AlphaPose_{videoName}.json"])
 
     if stopAfterExecuting == True:
         Stop(model)
         
 
     return allKeyPoints
+
+def GetBGRColours():
+
+    # colours = [
+    #     (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
+    #     (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
+    #     (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
+    #     (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
+    #     (255, 255, 255), (0, 0, 0), (128, 0, 0)
+    # ]
+
+    colours = [
+        (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
+        (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
+        (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
+        (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
+        (255, 255, 255), (0, 0, 0), (128, 0, 0),
+        (255, 0, 128), (0, 255, 128)  # Two visually distinct colors added
+    ]
+
+    for colour in colours:
+        yield colour
+
+def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
+
+    with open("keypointGroupings.json", "r") as f:
+        keypointGroups = json.load(f)
+
+    selectedPoints = keypointGroups["AlphaPose"]
+
+    selectedKeyPoints = []
+    
+    for i in range(len(bboxStack)):
+
+        images = inputStack[i]
+        keyPoints = keyPointStack[i]
+        bboxes = bboxStack[i]
+
+        selectedKeyPoints.append([])
+
+        for j in range(len(bboxes)):
+
+            keyPointArray = keyPoints[j]
+            box = bboxes[j]
+
+            selectedKeyPoints[i].append([])
+
+            x, y, x1, y1 = box
+
+            loopLength = stride if (j*stride)+stride < len(images) else len(images) - (j*stride)
+
+            #print(f"loop length: {loopLength}")
+
+            for p in range(loopLength):
+                #print(f"p value: {(j*stride)+p}")
+
+                #print(f"keypoint array: {keyPointArray}")
+
+                if len(keyPointArray.poses) != 0:
+
+                    isDrawn = np.zeros((keyPointArray.poses[0].shape[0], 1), dtype=np.uintp)
+
+                    for t, (keyX, keyY, keyZ) in enumerate(keyPointArray.poses[0]):
+
+                        if t in selectedPoints:
+                            if drawText:
+                                cv2.putText(images[(j*stride)+p], f"{t}", ((x+int(keyX))-10, (y+int(keyY))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
+                            if drawKeypoints:
+                                cv2.circle(images[(j*stride)+p], (x + int(keyX), y + int(keyY)), 3, np.array(keyPointArray.keypoint_colors[t]).tolist(), -1)
+                                isDrawn[t] = 1
+                            if drawBboxes:
+                                cv2.rectangle(images[(j*stride)+p], (x, y), (x1, y1), (0, 0, 255), 2)
+
+                            selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
+                    if drawEdges:
+                        for k, (origin, dest) in enumerate(np.array(keyPointArray.edge_links)):
+                            #print(f"{keyPointArray.poses[0][origin][:2].astype(np.uintp)} | {keyPointArray.poses[0][dest][:2].astype(np.uintp)} | {keyPointArray.edge_colors[k]}")
+                            if isDrawn[origin] and isDrawn[dest]:
+
+                                #print(f"x, y: {x} {y} line before: {keyPointArray.poses[0][origin][:2].astype(np.uintp)} after : {[x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)} {type([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp))}")
+                                cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)).astype(np.uintp), ([x, y] + keyPointArray.poses[0][dest][:2].astype(np.uintp)).astype(np.uintp), np.array(keyPointArray.edge_colors[k]).tolist(), 3)
+
+    return selectedKeyPoints
+
 
 def Stop(model):
     model.stop()

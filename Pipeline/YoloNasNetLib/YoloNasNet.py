@@ -46,7 +46,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=
     
     for i in range(len(bboxStack)):
 
-        images = inputStack[i]
+        images = inputStack.images[i]
         keyPoints = keyPointStack[i]
         bboxes = bboxStack[i]
 
