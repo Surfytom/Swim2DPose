@@ -77,7 +77,7 @@ if __name__ == "__main__":
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
     # Get the file names in the directory
-    fileNames, fileNamesWithoutExtension = utils.GetFileNames(path)
+    fileNames, fileNamesWithoutExtension = utils.GetFileNames(args.folder if args.folder else args.inputpaths)
 
     print("File names in the directory:")
     print(fileNames)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     for i, fileName in enumerate(fileNames):
         images, strideImages = utils.LoadMediaPath(f'{fileName}', args.stride)
-        paths.append(f'{path}/{fileName}')
+        paths.append(fileName)
         inputStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] } if args.stride == 1 else { images: strideImages, 'name': fileNamesWithoutExtension[i] })
         imageStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] })
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
         startTime = time.perf_counter()
 
-        yoloModel = yolo.InitModel("Pipeline/YoloUltralyticsLib/Models/yolov8x-seg.pt")
+        yoloModel = yolo.InitModel("yolov8x-seg.pt")
 
         # Need to send yolo segmented images to dwpose model
         results = yolo.YOLOSegment(yoloModel, inputStack)
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
         # This function runs the model and gets a result in the format
         # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-        keyPoints = poseModel.Inference(model, segmentedImageStack, config)
+        keyPoints = poseModel.Inference(model, segmentedImageStack, Bboxes, config)
 
         endTime2 = time.perf_counter()
         print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))

@@ -4,7 +4,7 @@ import os
 import glob
 import LabelBoxApi as labelBox
 
-DEBUG = True
+DEBUG = False
 
 def GetFileNames(directory):
     file_names = []
@@ -12,11 +12,12 @@ def GetFileNames(directory):
 
     files = []
 
-    if type(directory == str):
+    if type(directory) == str:
         # List all files and directories in the specified directory
         files = glob.glob(f"{directory}/*")
-    elif type(directory == list):
+    elif type(directory) == list:
         files = directory
+    
     for file in files:
         # Check if the path is a file (not a directory)
         if os.path.isfile(file):
@@ -144,7 +145,7 @@ def BboxSegment(imageStack, results):
             returnBboxes[count].append([x, y, x1, y1])
 
             # Append cropped image using the padded bounding box
-            segmentedImages[count]['images'].append(image[y:y1, x:x1])
+            segmentedImages[count]['images'].append(image)
 
         count += 1
         
@@ -240,8 +241,6 @@ def MaskSegment(imageStack, results):
                 #cv2.drawContours(imageStack[i][j], contours, -1, (255, 255, 255), 2)
 
             segmentedImages[i]['images'].append(shownImage)
-            cv2.imwrite("imageWithContour.png", image)
-            #segmentedImages[i].append(shownImage)
             bboxes[i].append([x, y, x1, y1])
 
     return [segmentedImages, bboxes]
@@ -305,14 +304,14 @@ def SaveImages(imageStack, fps, poseModel, folderPath):
     # This saves an images stack to a specific output folder
 
     # Gets all folders in output folder path with run in the name
-    outputPaths = glob.glob(f"{folderPath}/*run*")
+    outputPaths = glob.glob(f"{folderPath}/{poseModel}/*run_*")
 
     max = 0
 
     # Loops exisitng *run* folders to find the one with the highest number
     for path in outputPaths:
 
-        stringDigit = path[path.index("run")+3:]
+        stringDigit = path[path.index("run_")+4:]
 
         if stringDigit.isdigit():
 

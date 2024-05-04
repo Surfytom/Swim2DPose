@@ -29,9 +29,9 @@ def Inference(model, imageStack, bboxes, config):
         # Loops through the
         
         allKeyPoints.append([])
-        for j, image in enumerate(images):
+        for j, image in enumerate(images['images']):
             bbox = bboxes[i][j]
-            results = inference_topdown(model, image[bbox[1,3], bbox[0,2]])
+            results = inference_topdown(model, image[bbox[1]:bbox[3], bbox[0]:bbox[2]])
 
             keyPoints = results[0].pred_instances.keypoints[0]
 
@@ -63,13 +63,10 @@ def GetBGRColours():
     for colour in colours:
         yield colour
 
-def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
+def DrawKeypoints(inputStack, keyPointStack, bboxStack, selectedKeyPoints, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
-    with open("keypointGroupings.json", "r") as f:
-        keypointGroups = json.load(f)
-
-    selectedPoints = keypointGroups["DWPose"]["keypoints"]
-    edgeLinks = keypointGroups["DWPose"]["links"]
+    selectedPoints = selectedKeyPoints["keypoints"]
+    edgeLinks = selectedKeyPoints["links"]
 
     selectedPoints.append(133)
     selectedPoints.append(134)
@@ -78,7 +75,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=
     
     for i in range(len(bboxStack)):
 
-        images = inputStack.images[i]
+        images = inputStack[i]['images']
         keyPoints = keyPointStack[i]
         bboxes = bboxStack[i]
 
