@@ -303,6 +303,10 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, selectedPoints, stride=
 def SaveImages(imageStack, fps, poseModel, folderPath):
     # This saves an images stack to a specific output folder
 
+    if os.path.exists(folderPath) == False:
+        # Make results folder if it does not exist
+        os.mkdir(folderPath)
+
     # Gets all folders in output folder path with run in the name
     outputPaths = glob.glob(f"{folderPath}/{poseModel}/*run_*")
 
