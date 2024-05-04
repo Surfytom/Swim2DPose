@@ -4,6 +4,12 @@ import json
 import time
 import argparse
 import utils
+import pathlib
+import cv2
+
+currentPath = pathlib.Path(__file__).parent.resolve()
+
+print("currentPath: ", currentPath)
 
 if __name__ == "__main__":
 
@@ -79,16 +85,16 @@ if __name__ == "__main__":
     inputStack = []
     imageStack = []
 
-    for fileName in fileNames:
-        images, strideImages = utils.LoadMediaPath(f'{path}/{fileName}', args.stride)
+    for i, fileName in enumerate(fileNames):
+        images, strideImages = utils.LoadMediaPath(f'{fileName}', args.stride)
         paths.append(f'{path}/{fileName}')
-        inputStack.append(images if args.stride == 1 else strideImages)
-        imageStack.append(images)
+        inputStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] } if args.stride == 1 else { images: strideImages, 'name': fileNamesWithoutExtension[i] })
+        imageStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] })
 
-        print(f"path: {path}\nFrame Count: {len(images)}\n")
+        print(f"path: {fileName}\nFrame Count: {len(images)}\n")
 
-    print(f"Image stack length {len(imageStack[0])}")
-    print(f"stride {args.stride} stack length {len(inputStack[0])}")
+    print(f"Image stack length {len(imageStack[0]['images'])}")
+    print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
 
     print(f"Loading Config For {args.model}")
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
