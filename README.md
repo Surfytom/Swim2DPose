@@ -4,17 +4,21 @@ This is a repository for a university group project. This project contains a pip
 
 ## Contents
 
-Setup
+### Setup And Pipeline
 
-Pipeline
+[Setup](Setup)
 
-AlphaPose
+[Pipeline]()
 
-OpenPose
+### Supported Models
 
-DWPose
+[AlphaPose]()
 
-YoloNasNet
+[OpenPose]()
+
+[DWPose]()
+
+[YoloNasNet]()
 
 ## Setup
 
