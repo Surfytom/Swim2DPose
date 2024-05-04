@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 import torch
 import json
+import pathlib
 
 from super_gradients.training import models
 
-def LoadConfig():
-    with open("Pipeline/YoloNasNetLib/config.json", "r") as f:
+def LoadConfig(args):
+    with open(f"{pathlib.Path(__file__).parent.resolve()}/config.json", "r") as f:
         config = json.load(f)
         
     return config
@@ -38,7 +39,7 @@ def Inference(model, imageStack, bboxes, config):
 
 def DrawKeypoints(inputStack, keyPointStack, bboxStack, selectedKeyPoints, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
-    selectedPoints = selectedKeyPoints["keypoints"]
+    selectedPoints = selectedKeyPoints
 
     selectedKeyPoints = []
     

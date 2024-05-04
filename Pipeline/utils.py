@@ -3,6 +3,7 @@ import numpy as np
 import os
 import glob
 import LabelBoxApi as labelBox
+from datetime import datetime
 
 DEBUG = False
 
@@ -307,25 +308,6 @@ def SaveImages(imageStack, fps, poseModel, folderPath):
         # Make results folder if it does not exist
         os.mkdir(folderPath)
 
-    # Gets all folders in output folder path with run in the name
-    outputPaths = glob.glob(f"{folderPath}/{poseModel}/*run_*")
-
-    max = 0
-
-    # Loops exisitng *run* folders to find the one with the highest number
-    for path in outputPaths:
-
-        stringDigit = path[path.index("run_")+4:]
-
-        if stringDigit.isdigit():
-
-            digit = int(stringDigit)
-
-            if digit > max:
-                max = digit
-
-    max += 1
-
     if os.path.exists(f"{folderPath}/{poseModel}") == False:
         # Makes a new folder wtih the new highest run digit
         os.mkdir(f"{folderPath}/{poseModel}")
@@ -333,23 +315,26 @@ def SaveImages(imageStack, fps, poseModel, folderPath):
     # Loops through each images or video in the stack outputting to an appropriate folder
     for item in imageStack:
 
+        dateTimeF = '{:%d-%m-%Y_%H:%M:%S}'.format(datetime.now())
+        fp = f"{folderPath}/{poseModel}/{dateTimeF}"
+
         images = item['images']
         name = item['name']
-        if os.path.exists(f"{folderPath}/{poseModel}/run_{max}") == False:
-            os.mkdir(f"{folderPath}/{poseModel}/run_{max}")
+        if os.path.exists(fp) == False:
+            os.mkdir(fp)
 
         if len(images) == 1:
-            cv2.imwrite(f"{folderPath}/{poseModel}run_{max}/{name}.jpg", images[0])
+            cv2.imwrite(f"{fp}/{name}_{dateTimeF}.png", images[0])
         else:
             shape = np.shape(images[0])
-            out = cv2.VideoWriter(f'{folderPath}/{poseModel}/run_{max}/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
+            out = cv2.VideoWriter(f'{fp}/{name}_{dateTimeF}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
 
             out.release()
 
-    print(f"Outputs saved to {folderPath}/{poseModel}/run_{max}")
+    print(f"Outputs saved to {fp}")
 
 def SaveVideoAnnotationsToLabelBox(apiKey, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, videoPaths, frameKeyPoints):
 
