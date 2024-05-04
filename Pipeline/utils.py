@@ -17,16 +17,13 @@ def GetFileNames(directory):
         files = glob.glob(f"{directory}/*")
     elif type(directory == list):
         files = directory
-    
     for file in files:
         # Check if the path is a file (not a directory)
         if os.path.isfile(file):
-            file_name_without_extension, _ = os.path.splitext(file)
-
-            if (_ == "avi" or _ == "mp4" or _ == "png" or _ == "jpeg"):
+            file_name_without_extension, _ = os.path.splitext(os.path.basename(file).split('/')[-1])
+            if (_ == ".avi" or _ == ".mp4" or _ == ".png" or _ == ".jpeg"):
                 file_names.append(file)
                 file_name_without_extensions.append(file_name_without_extension)
-
     return file_names, file_name_without_extensions
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
@@ -123,9 +120,15 @@ def BboxSegment(imageStack, results):
 
     count = 0
 
-    for images, boxes in zip(imageStack, results):
-        segmentedImages.append([])
+    for item, boxes in zip(imageStack, results):
+
+        images = item['images']
+        name = item['name']
+
+        segmentedImages.append({ 'images': [], 'name': name })
+
         returnBboxes.append([])
+        
         for image, box in zip(images, boxes):
             # box contains all bounding boxes returned by segmentation model for this image
 
@@ -141,7 +144,7 @@ def BboxSegment(imageStack, results):
             returnBboxes[count].append([x, y, x1, y1])
 
             # Append cropped image using the padded bounding box
-            segmentedImages[count].append(image[y:y1, x:x1])
+            segmentedImages[count]['images'].append(image[y:y1, x:x1])
 
         count += 1
         
@@ -170,9 +173,10 @@ def MaskSegment(imageStack, results):
 
     for i in range(0, len(imageStack)):
 
-        images = imageStack[i]
+        images = imageStack[i]['images']
+        name = imageStack[i]['name']
 
-        segmentedImages.append([])
+        segmentedImages.append({ 'images': [], 'name': name })
         bboxes.append([])
 
         for j in range(0, len(images)):
@@ -193,7 +197,7 @@ def MaskSegment(imageStack, results):
                 # Applies mask to original coloured images to crop it
                 shownImage = cv2.bitwise_and(image, image, mask=mask)
 
-                segmentedImages[i].append(shownImage[y:y+h, x:x+w])
+                segmentedImages[i]['images'].append(shownImage)
                 bboxes[i].append([x, y, x+w, y+h])
 
                 continue
@@ -235,7 +239,7 @@ def MaskSegment(imageStack, results):
 
                 #cv2.drawContours(imageStack[i][j], contours, -1, (255, 255, 255), 2)
 
-            segmentedImages[i].append(shownImage[y:y1, x:x1])
+            segmentedImages[i]['images'].append(shownImage)
             cv2.imwrite("imageWithContour.png", image)
             #segmentedImages[i].append(shownImage)
             bboxes[i].append([x, y, x1, y1])
@@ -297,7 +301,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, selectedPoints, stride=
 
     return selectedKeyPoints
 
-def SaveImages(imageStack, fps, poseModel, folderPath="./results"):
+def SaveImages(imageStack, fps, poseModel, folderPath):
     # This saves an images stack to a specific output folder
 
     # Gets all folders in output folder path with run in the name
@@ -319,26 +323,30 @@ def SaveImages(imageStack, fps, poseModel, folderPath="./results"):
 
     max += 1
 
-    # Makes a new folder wtih the new highest run digit
-    os.mkdir(f"{folderPath}/{poseModel}run{max}")
+    if os.path.exists(f"{folderPath}/{poseModel}") == False:
+        # Makes a new folder wtih the new highest run digit
+        os.mkdir(f"{folderPath}/{poseModel}")
 
     # Loops through each images or video in the stack outputting to an appropriate folder
-    for i, images in enumerate(imageStack):
+    for item in imageStack:
 
-        os.mkdir(f"{folderPath}/{poseModel}run{max}/ouput{i}")
+        images = item['images']
+        name = item['name']
+        if os.path.exists(f"{folderPath}/{poseModel}/run_{max}") == False:
+            os.mkdir(f"{folderPath}/{poseModel}/run_{max}")
 
         if len(images) == 1:
-            cv2.imwrite(f"{folderPath}/{poseModel}run{max}/ouput{i}/image.jpg", images[0])
+            cv2.imwrite(f"{folderPath}/{poseModel}run_{max}/{name}.jpg", images[0])
         else:
             shape = np.shape(images[0])
-            out = cv2.VideoWriter(f'{folderPath}/{poseModel}run{max}/ouput{i}/video.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
+            out = cv2.VideoWriter(f'{folderPath}/{poseModel}/run_{max}/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
 
             out.release()
 
-    print(f"Outputs saved to {folderPath}/{poseModel}run{max}")
+    print(f"Outputs saved to {folderPath}/{poseModel}/run_{max}")
 
 def SaveVideoAnnotationsToLabelBox(apiKey, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, videoPaths, frameKeyPoints):
 

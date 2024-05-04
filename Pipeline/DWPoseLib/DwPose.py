@@ -2,6 +2,7 @@ import torch
 import cv2
 import numpy as np
 import json
+import pathlib
 
 from mmpose.apis import inference_topdown, init_model
 from mmpose.utils import register_all_modules
@@ -11,16 +12,16 @@ from mmpose.utils import register_all_modules
 register_all_modules()
 
 def LoadConfig(args):
-    with open("Pipeline/DWPoseLib/config.json", "r") as f:
+    with open(f"{pathlib.Path(__file__).parent.resolve()}/config.json", "r") as f:
         config = json.load(f)
         
     return config
 
 def InitModel(config):
     # Simply creates and return a model based on a weight and config file path
-    return init_model(config["modelConfigPath"], config["modelWeightPath"], device='cuda:0' if torch.cuda.is_available() else 'cpu')  # or device='cuda:0'
+    return init_model(f'{pathlib.Path(__file__).parent.resolve()/config["modelConfigPath"]}', f'{pathlib.Path(__file__).parent.resolve()/config["modelWeightPath"]}', device='cuda:0' if torch.cuda.is_available() else 'cpu')  # or device='cuda:0'
     
-def Inference(model, imageStack, config):
+def Inference(model, imageStack, bboxes, config):
     # Runs the model on a set of images returning the keypoints the model detects
     allKeyPoints = []
 
@@ -28,8 +29,9 @@ def Inference(model, imageStack, config):
         # Loops through the
         
         allKeyPoints.append([])
-        for image in images:
-            results = inference_topdown(model, image)
+        for j, image in enumerate(images):
+            bbox = bboxes[i][j]
+            results = inference_topdown(model, image[bbox[1,3], bbox[0,2]])
 
             keyPoints = results[0].pred_instances.keypoints[0]
 
@@ -76,7 +78,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=
     
     for i in range(len(bboxStack)):
 
-        images = inputStack[i]
+        images = inputStack.images[i]
         keyPoints = keyPointStack[i]
         bboxes = bboxStack[i]
 

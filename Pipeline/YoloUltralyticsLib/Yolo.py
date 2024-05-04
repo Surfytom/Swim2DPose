@@ -23,8 +23,9 @@ def InitModel(ptFilePath="yolov8n.pt"):
 def YOLOSegment(model, imageStack, paddingSize=10):
     
     allResults = []
-
-    for images in imageStack:
+    for item in imageStack:
+        
+        images = item['images']
 
         print(f"Video frame amount: {len(images)}")
 

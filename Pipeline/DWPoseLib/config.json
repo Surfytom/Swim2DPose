@@ -1,4 +1,4 @@
 {
-    "modelWeightPath": "Pipeline/DWPoseLib/Models/384x288DWPoseLargeModel.pth",
-    "modelConfigPath": "Pipeline/DWPoseLib/Models/384x288DWPoseLargeConfig.py"
+    "modelWeightPath": "Models/384x288DWPoseLargeModel.pth",
+    "modelConfigPath": "Models/384x288DWPoseLargeConfig.py"
 }
