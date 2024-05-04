@@ -153,8 +153,8 @@ dmypy.json
 cython_debug/
 
 # Custom Ignores
-results/
-!results/.gitkeep
+Pipeline/results/*
+!Pipeline/results/.gitkeep
 Pipeline/YoloUltralyticsLib/Models/*
 !Pipeline/YoloUltralyticsLib/Models/.gitkeep
 Pipeline/DWPoseLib/Models/*.pth

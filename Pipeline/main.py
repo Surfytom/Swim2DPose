@@ -77,7 +77,7 @@ if __name__ == "__main__":
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
     # Get the file names in the directory
-    fileNames, fileNamesAndExtensions = utils.GetFileNames(path)
+    fileNames, fileNamesAndExtensions = utils.GetFileNames(args.folder if args.folder else args.inputpaths)
 
     print("File names in the directory:")
     print(fileNames)

@@ -2,11 +2,12 @@ import cv2
 import numpy as np
 import torch
 import json
+import pathlib
 
 from super_gradients.training import models
 
-def LoadConfig():
-    with open("Pipeline/YoloNasNetLib/config.json", "r") as f:
+def LoadConfig(args):
+    with open(f"{pathlib.Path(__file__).parent.resolve()}/config.json", "r") as f:
         config = json.load(f)
         
     return config
@@ -18,7 +19,7 @@ def InitModel(config):
 
     return yolo_nas_pose
 
-def Inference(model, imageStack, config):
+def Inference(model, imageStack, bboxes, config):
     # Runs the model on a set of images returning the keypoints the model detects
     allKeyPoints = []
 
@@ -26,8 +27,9 @@ def Inference(model, imageStack, config):
         # Loops through the
         
         allKeyPoints.append([])
-        for image in images:
-            results = model.predict(image, iou=config["iou"], conf=config["confidence"])
+        for j, image in enumerate(images['images']):
+            bbox = bboxes[i][j]
+            results = model.predict(image[bbox[1]:bbox[3], bbox[0]:bbox[2]], iou=config["iou"], conf=config["confidence"])
 
             #keyPoints = np.array(results.prediction.poses[:, :2]).astype(np.intp)
             
@@ -35,18 +37,15 @@ def Inference(model, imageStack, config):
 
     return allKeyPoints
 
-def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
+def DrawKeypoints(inputStack, keyPointStack, bboxStack, selectedKeyPoints, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
-    with open("keypointGroupings.json", "r") as f:
-        keypointGroups = json.load(f)
-
-    selectedPoints = keypointGroups["DWPose"]
+    selectedPoints = selectedKeyPoints
 
     selectedKeyPoints = []
     
     for i in range(len(bboxStack)):
 
-        images = inputStack.images[i]
+        images = inputStack[i]['images']
         keyPoints = keyPointStack[i]
         bboxes = bboxStack[i]
 

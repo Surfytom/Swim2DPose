@@ -3,9 +3,9 @@ import numpy as np
 import os
 import glob
 import LabelBoxApi as labelBox
-import datetime
+from datetime import datetime
 
-DEBUG = True
+DEBUG = False
 
 def GetFileNames(directory):
     file_names = []
@@ -13,11 +13,12 @@ def GetFileNames(directory):
 
     files = []
 
-    if type(directory == str):
+    if type(directory) == str:
         # List all files and directories in the specified directory
         files = glob.glob(f"{directory}/*")
-    elif type(directory == list):
+    elif type(directory) == list:
         files = directory
+    
     for file in files:
         # Check if the path is a file (not a directory)
         if os.path.isfile(file):
@@ -145,7 +146,7 @@ def BboxSegment(imageStack, results):
             returnBboxes[count].append([x, y, x1, y1])
 
             # Append cropped image using the padded bounding box
-            segmentedImages[count]['images'].append(image[y:y1, x:x1])
+            segmentedImages[count]['images'].append(image)
 
         count += 1
         
@@ -241,8 +242,6 @@ def MaskSegment(imageStack, results):
                 #cv2.drawContours(imageStack[i][j], contours, -1, (255, 255, 255), 2)
 
             segmentedImages[i]['images'].append(shownImage)
-            cv2.imwrite("imageWithContour.png", image)
-            #segmentedImages[i].append(shownImage)
             bboxes[i].append([x, y, x1, y1])
 
     return [segmentedImages, bboxes]
@@ -305,24 +304,9 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, selectedPoints, stride=
 def SaveImages(imageStack, fps, poseModel, folderPath):
     # This saves an images stack to a specific output folder
 
-    # Gets all folders in output folder path with run in the name
-    outputPaths = glob.glob(f"{folderPath}/*run*")
-
-    max = 0
-
-    # Loops exisitng *run* folders to find the one with the highest number
-    for path in outputPaths:
-
-        stringDigit = path[path.index("run")+3:]
-
-        if stringDigit.isdigit():
-
-            digit = int(stringDigit)
-
-            if digit > max:
-                max = digit
-
-    max += 1
+    if os.path.exists(folderPath) == False:
+        # Make results folder if it does not exist
+        os.mkdir(folderPath)
 
     if os.path.exists(f"{folderPath}/{poseModel}") == False:
         # Makes a new folder wtih the new highest run digit
@@ -331,22 +315,26 @@ def SaveImages(imageStack, fps, poseModel, folderPath):
     # Loops through each images or video in the stack outputting to an appropriate folder
     for item in imageStack:
 
+        dateTimeF = '{:%d-%m-%Y_%H:%M:%S}'.format(datetime.now())
+        fp = f"{folderPath}/{poseModel}/{dateTimeF}"
+
         images = item['images']
         name = item['name']
+        if os.path.exists(fp) == False:
+            os.mkdir(fp)
 
         if len(images) == 1:
-            cv2.imwrite(f"{folderPath}/{poseModel}/{name}.jpg", images[0])
+            cv2.imwrite(f"{fp}/{name}.png", images[0])
         else:
             shape = np.shape(images[0])
-            dateFormat = "%m-%d-%Y"
-            out = cv2.VideoWriter(f'{folderPath}/{poseModel}/{name}_{datetime.datetime.now().strftime(dateFormat)}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
+            out = cv2.VideoWriter(f'{fp}/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
 
             out.release()
 
-    print(f"Outputs saved to {folderPath}/{poseModel}/{name}_{datetime.datetime.now().strftime(dateFormat)}.avi")
+    print(f"Outputs saved to {fp}")
 
 def SaveVideoAnnotationsToLabelBox(apiKey, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, videoPaths, frameKeyPoints):
 
