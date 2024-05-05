@@ -1,14 +1,9 @@
-import subprocess
-import sys
-
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
-install("docker")
 import docker
-client = docker.from_env()
 
-def InitModel(config):    
+client = docker.from_env()
+client.pipelineContainerId = client.containers.list()[-1].id
+
+def InitModel(config):
     container = client.containers.run(**config)
     # Print container ID
     print("Container ID:", container.id)
@@ -27,12 +22,7 @@ def LoadConfig(args):
         'device_requests': [
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
-        'volumes': {    
-            f'{args.folder}': {
-                'bind': '/data',
-                'mode': 'rw'
-            }
-        },
+        'volumes_from': [client.pipelineContainerId],
         'stdin_open': True,  # Keep STDIN open even if not attached (-i)
         'tty': True,  # Allocate a pseudo-TTY (-t)
     }
@@ -42,15 +32,13 @@ def Inference(model, videoNames, stopAfterExecuting=True):
     allKeyPoints = []
 
     for i, videoName in enumerate(videoNames):
-        # Runs the model on a set of images returning the keypoints the model detects
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/{videoName}.mp4" --save_video --outdir examples/saved/ --sp --vis_fast')
-        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/AlphaPose_{videoName}.mp4", f'./AlphaPoseLib/results/AlphaPose_{videoName}.mp4'])
-        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/alphapose-results.json", f'./AlphaPoseLib/keypoints/AlphaPose_{videoName}.json'])
 
+        print(f"Video {i} running through AlphaPose")
+        model.exec_run(cmd=f'python3 /build/AlphaPose/scripts/demo_inference.py --detector yolox-x --cfg /build/AlphaPose/configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/{videoName}.mp4" --save_video --outdir /usr/src/app/media/ --sp --vis_fast')
+        print(f"Video {i} Finished")
 
     if stopAfterExecuting == True:
         Stop(model)
-        
 
     return allKeyPoints
 
