@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import json
 import os
+import argparse
 
 DEBUG = False
 
@@ -22,7 +23,7 @@ C = 2
 # Same as C but for the end portion of the video
 D = 1
 
-def GetRandomFrame(numOfFrames):
+def GetRandomFrame(numOfFrames, K, C, D):
 
     startingFrame = 0 if C == 1 else numOfFrames // C
     endingFrame = numOfFrames if D == 1 else (numOfFrames - (numOfFrames // D)) - 5
@@ -55,7 +56,7 @@ def LoadMediaPath(path):
 
     return frames
 
-def CombineFinalVideo(finalVideo):
+def CombineFinalVideo(finalVideo, K):
 
     videoInfo = []
     # videoInfoObject = {"videoName": "None", "frameStart": 0, "frameEnd": 0}
@@ -111,9 +112,20 @@ def CombineFinalVideo(finalVideo):
 
 if __name__ == "__main__":
 
-    videoPaths = glob.glob("/mnt/d/My Drive/Msc Artificial Intelligence/Semester 2/AI R&D/AIR&DProject/Sample Videos/EditedVideos/*.mp4")
+    parser = argparse.ArgumentParser()
 
-    randomVideos = np.random.choice(len(videoPaths), size=(N), replace=False) if N < len(videoPaths)-1 else np.arange(0, len(videoPaths))
+    parser.add_argument('-fo', "--folder", help='Use this flag to specify input folder path', required=True)
+    parser.add_argument('-type', "--type", help='Use to specify file type to get from folder', required=True)
+    parser.add_argument('-N', "--N", help='Use to specify total number of videos to randomly sample', type=int, required=True)
+    parser.add_argument('-K', "--K", help="Use to set how many consecutive frames to get from each video. Default is 10", type=int, default=10)
+    parser.add_argument('-C', "--C", help="Use to set beggining cutoff section. 1 means no frames are ignored. Default is 2 meaning the first half of the video is ignored", type=int, default=2)
+    parser.add_argument('-D', "--D", help="Use to set ending cutoff section. 1 means no frames are ignored. Default is 1 meaning no frames are ignored", type=int, default=1)
+
+    args = parser.parse_args()
+
+    videoPaths = glob.glob(f"{args.folder}/*.{args.type}")
+
+    randomVideos = np.random.choice(len(videoPaths), size=(args.N), replace=False) if args.N < len(videoPaths)-1 else np.arange(0, len(videoPaths))
 
     if DEBUG:
         print(f"Random Videos Indexes: {randomVideos.shape} | {randomVideos.tolist()}")
@@ -127,10 +139,10 @@ if __name__ == "__main__":
         frames = LoadMediaPath(videoPaths[index])
 
         videoName = videoPaths[index][videoPaths[index].rfind("/")+1:]
-        videoName = videoName.replace(".mp4", "")
+        videoName = videoName.replace(f".{args.type}", "")
 
-        randomFrame = GetRandomFrame(len(frames))
+        randomFrame = GetRandomFrame(len(frames), args.K, args.C, args.D)
 
-        finalVideo.append([videoName, frames[randomFrame:randomFrame+K], randomFrame, len(frames)])
+        finalVideo.append([videoName, frames[randomFrame:randomFrame+args.K], randomFrame, len(frames)])
 
-    CombineFinalVideo(finalVideo=finalVideo)
+    CombineFinalVideo(finalVideo, args.K)
