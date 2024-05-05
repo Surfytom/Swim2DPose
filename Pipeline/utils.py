@@ -301,7 +301,7 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, selectedPoints, stride=
 
     return selectedKeyPoints
 
-def SaveImages(imageStack, fps, poseModel, folderPath):
+def SaveImages(imageStack, fps, poseModel, folderPath="/usr/src/app/media/results"):
     # This saves an images stack to a specific output folder
 
     if os.path.exists(folderPath) == False:
@@ -315,7 +315,7 @@ def SaveImages(imageStack, fps, poseModel, folderPath):
     # Loops through each images or video in the stack outputting to an appropriate folder
     for item in imageStack:
 
-        dateTimeF = '{:%d-%m-%Y_%H:%M:%S}'.format(datetime.now())
+        dateTimeF = '{:%d-%m-%Y_%H-%M-%S}'.format(datetime.now())
         fp = f"{folderPath}/{poseModel}/{dateTimeF}"
 
         images = item['images']
