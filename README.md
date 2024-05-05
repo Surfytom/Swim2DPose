@@ -62,7 +62,7 @@ Write command to pull OpenPose image
 
 The pipeline is the central part of this repository. It offers a command line interface that allows you to pass videos to each of the 4 models integrated into the pipeline with added flags and options to configure the output to what you want.
 
-picture of pipeline
+![Pipeline Overview Image](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DockerPipelineImage.png "Pipeline Overview")
 
 ### Your First Command
 
