@@ -24,4 +24,4 @@ To use YoloNasNet Run the following command within the pipeline container comman
 python3 Pipeline/main.py -m YoloNasNet
 ```
 
-If you don't have the pipeline container installed please follow the setup guide in the main [readme](https://github.com/Surfytom/Swim2DPose/blob/main/README.md).
+If you don't have the pipeline container installed please follow the setup guide in the main [readme](https://github.com/Surfytom/Swim2DPose/blob/main/README.md#pipeline).
