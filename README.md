@@ -70,11 +70,11 @@ Open a terminal in the main Swim2DPose directory and run:
 ```
 python Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s path/to/save/folder
 ```
--m Alphapose tells the script to select AlphaPose as the pose model
+```-m Alphapose``` tells the script to select AlphaPose as the pose model
 
--i path/to/video.mp4 specifies a list of paths to media you want to process (this can be one or more media)
+```-i path/to/video.mp4``` specifies a list of paths to media you want to process (this can be one or more media)
 
--s saves the output videos to the specified folder. If no argument is passed videos will be saved to 'Pipeline/results'
+```-s``` saves the output videos to the specified folder. If no argument is passed videos will be saved to 'Pipeline/results'
 
 Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md) for more information and all available configuration flags.
 
