@@ -102,6 +102,10 @@ Please consult the [OpenPose readme](https://github.com/Surfytom/Swim2DPose/blob
 
 ## DWPose
 
+### Preview
+
+![preview video](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DivingDWPose.gif)
+
 Please consult the [DWPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/DWPoseLib/DWPoseREADME.md) for information on getting started with the model.
 
 ## YoloNasNet
