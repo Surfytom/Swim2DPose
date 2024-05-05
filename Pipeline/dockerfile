@@ -30,6 +30,8 @@ RUN apt-get install -y --no-install-recommends ffmpeg
 
 RUN pip install ffmpeg-python
 
+RUN pip install docker
+
 # Label Box API
 RUN pip install "labelbox[data]"
 
