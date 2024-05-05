@@ -5,11 +5,12 @@ import time
 import argparse
 import utils
 import pathlib
-import cv2
 
 currentPath = pathlib.Path(__file__).parent.resolve()
 
-print("currentPath: ", currentPath)
+print("Current File Path: ", currentPath)
+
+DEBUG = False
 
 if __name__ == "__main__":
 
@@ -53,14 +54,15 @@ if __name__ == "__main__":
         if (args.labelprojname and not args.labelont):
             raise RuntimeError("ERROR: Creating a new project with -lpk cannot be used with defining an ontology for the project with -lont")
 
-    print(args.folder)
-    print(args.inputpaths)
-    print(args.label)
-    print(args.mask)
-    print(args.fps)
-    print(args.model)
-    print(args.save)
-    print(args.stride)
+    if DEBUG:
+        print(args.folder)
+        print(args.inputpaths)
+        print(args.label)
+        print(args.mask)
+        print(args.fps)
+        print(args.model)
+        print(args.save)
+        print(args.stride)
 
     if args.model == "DWPose":
         import DWPoseLib.DwPose as poseModel
@@ -71,7 +73,7 @@ if __name__ == "__main__":
     if args.model == "AlphaPose":
         import AlphaPoseLib.AlphaPoseModel as poseModel
 
-    print("Cuda Available: ", cuda.is_available())
+    print("GPU Available: ", cuda.is_available())
     
     paths = []
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
@@ -79,11 +81,14 @@ if __name__ == "__main__":
     # Get the file names in the directory
     fileNames, fileNamesWithoutExtension = utils.GetFileNames(args.folder if args.folder else args.inputpaths)
 
-    print("File names in the directory:")
+    print("Files that are going to be processed:")
     print(fileNames)
 
     inputStack = []
     imageStack = []
+
+    if (len(fileNames) <= 0) :
+        raise ValueError("File array is empty!!!")
 
     for i, fileName in enumerate(fileNames):
         images, strideImages = utils.LoadMediaPath(f'{fileName}', args.stride)
@@ -91,10 +96,11 @@ if __name__ == "__main__":
         inputStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] } if args.stride == 1 else { images: strideImages, 'name': fileNamesWithoutExtension[i] })
         imageStack.append({ 'images': images, 'name': fileNamesWithoutExtension[i] })
 
-        print(f"path: {fileName}\nFrame Count: {len(images)}\n")
+        print(f"path: {fileName} Loaded | Frame Count: {len(images)}\n")
 
-    print(f"Image stack length {len(imageStack[0]['images'])}")
-    print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
+    if DEBUG:
+        print(f"Image stack length {len(imageStack[0]['images'])}")
+        print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
 
     print(f"Loading Config For {args.model}")
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
@@ -162,7 +168,8 @@ if __name__ == "__main__":
             utils.SaveVideoAnnotationsToLabelBox(args.lk, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, paths, selectedKeyPoints)
 
     elif args.model == "OpenPose" or args.model == "AlphaPose":
-        print(fileNamesWithoutExtension)
+        if DEBUG:
+            print(fileNamesWithoutExtension)
         # This function runs the model and gets a result in the format
         # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
         keyPoints = poseModel.Inference(model, fileNamesWithoutExtension)
