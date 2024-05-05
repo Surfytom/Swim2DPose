@@ -94,6 +94,10 @@ Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/
 
 ## AlphaPose
 
+### Preview
+
+![demo video](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/AlphaPoseLib/media/demo%20video.gif)
+
 Please consult the [AlphaPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/AlphaPoseLib/README.md) for information on getting started with the library.
 
 ## OpenPose
