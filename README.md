@@ -37,7 +37,7 @@ Before you pull the images **please make sure you have enough disk space availab
 Pull the pipeline Docker image from Docker Hub using this command:
 
 ```
-docker pull Surfytom/pipeline:latest
+docker pull surfytom/pipeline:latest
 ```
 Once this has been pulled you can follow the steps in the [pipeline](#pipeline) section to get started
 
@@ -94,16 +94,16 @@ Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/
 
 ## AlphaPose
 
-
+Please consult the [AlphaPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/AlphaPoseLib/README.md) for information on getting started with the library.
 
 ## OpenPose
 
-
+Please consult the [OpenPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/DWPoseLib/DWPoseREADME.md) for information on getting started with the library.
 
 ## DWPose
 
-
+Please consult the [DWPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/DWPoseLib/DWPoseREADME.md) for information on getting started with the model.
 
 ## YoloNasNet
 
-
+Please consult the [YoloNasNet readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/YoloNasNetLib/YoloNasNetREADME.md) for information on getting started with the model.
