@@ -32,6 +32,8 @@ RUN pip install ffmpeg-python docker
 
 RUN pip install docker
 
+RUN pip install docker
+
 # Label Box API
 RUN pip install "labelbox[data]"
 

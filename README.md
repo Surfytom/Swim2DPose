@@ -37,14 +37,9 @@ Before you pull the images **please make sure you have enough disk space availab
 Pull the pipeline Docker image from Docker Hub using this command:
 
 ```
-Write command to pull pipeline image
+docker pull surfytom/pipeline:latest
 ```
-Once this has been pulled you can run the container using this command:
-
-```
-Write command to run pipeline container
-```
-Now you will have a command line operating within the container enviroment. Please consult the Pipeline section below or the Pipeline README.md to get started.
+Once this has been pulled you can follow the steps in the [pipeline](#pipeline) section to get started
 
 ---
 
@@ -64,9 +59,28 @@ The pipeline is the central part of this repository. It offers a command line in
 
 ![Pipeline Overview Image](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DockerPipelineImage.png "Pipeline Overview")
 
+### Starting The Pipeline Container
+
+If you have never run the pipeline container and it does not exist in your list of containers on Docker then run this command:
+```
+docker run -it --gpus all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" pipeline:latest
+```
+
+The pipeline will save results to the first mounted volume. If you want to mount a new folder please delete the pipeline **CONTAINER** (not image) and then run the command above again with a new path.
+
+If you have already got a pipeline container within the Docker container list that you want to run again please use the following command:
+```
+docker start pipeline && docker exec -it pipeline bash
+```
+
+After you are done type ```exit``` within the container to leave it and then type ```docker stop pipeline``` to stop the pipeline container.
+
 ### Your First Command
 
-Open a terminal in the main Swim2DPose directory and run:
+Now you are in the pipeline container you should be in the Swim2DPose directory. If your not please type  
+```cd /usr/src/app/Swim2DPose```.
+
+Now that your defintely in the Swim2DPose directory run the command below to use AlphaPose on the videos in your mounted folder:
 ```
 python Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s path/to/save/folder
 ```
@@ -80,16 +94,28 @@ Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/
 
 ## AlphaPose
 
+### Preview
 
+![demo video](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/AlphaPoseLib/media/demo%20video.gif)
+
+Please consult the [AlphaPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/AlphaPoseLib/README.md) for information on getting started with the library.
 
 ## OpenPose
 
-
+Please consult the [OpenPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/DWPoseLib/DWPoseREADME.md) for information on getting started with the library.
 
 ## DWPose
 
+### Preview
 
+![preview video](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DivingDWPose.gif)
+
+Please consult the [DWPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/DWPoseLib/DWPoseREADME.md) for information on getting started with the model.
 
 ## YoloNasNet
 
+### Preview
 
+![preview video](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DivingYoloNasNet.gif)
+
+Please consult the [YoloNasNet readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/YoloNasNetLib/YoloNasNetREADME.md) for information on getting started with the model.
