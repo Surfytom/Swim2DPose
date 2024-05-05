@@ -106,6 +106,13 @@ if __name__ == "__main__":
 
     # if args.model == "DWPose" or args.model == "YoloNasNet":
 
+    with open(f"{pathlib.Path(__file__).parent.resolve()}/keypointGroupings.json", "r") as f:
+        keypointGroups = json.load(f)
+
+    selectedPoints = keypointGroups[args.model]
+
+    startTime = time.perf_counter()
+
     with open("keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
 

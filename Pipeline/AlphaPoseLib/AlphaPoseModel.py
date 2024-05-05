@@ -1,14 +1,20 @@
-import subprocess
-import sys
-import cv2
-import numpy as np
-import json
 import docker
+import json
 
 client = docker.from_env()
+client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
+print("Pipeline Container ID: ", client.pipelineContainerId)
 
-def InitModel(config):    
-    container = client.containers.run(**config)
+def InitModel(config):
+
+    alphaposeContainer = client.containers.list(all=True, filters={"name": "alphapose"})
+
+    if (len(alphaposeContainer) == 1):
+      # Alphapose container already exists
+      container = alphaposeContainer[-1]
+      container.start()
+    else:
+      container = client.containers.run(**config)
     # Print container ID
     print("Container ID:", container.id)
 
@@ -23,15 +29,11 @@ def LoadConfig(currentPath):
     return {
         'image': 'lhlong1/alphapose:latest',
         'detach': True,
+        'name': 'alphapose',
         'device_requests': [
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
-        'volumes': {    
-            f'{currentPath}/SegmentedVideos/AlphaPose': {
-                'bind': '/data',
-                'mode': 'rw'
-            }
-        },
+        'volumes_from': [client.pipelineContainerId],
         'stdin_open': True,  # Keep STDIN open even if not attached (-i)
         'tty': True,  # Allocate a pseudo-TTY (-t)
     }
@@ -44,14 +46,14 @@ def Inference(model, videoNames, stopAfterExecuting=True):
         videoNameAndExt = video['name'] + video['ext']
         videoName = video['name']
 
-        # Runs the model on a set of images returning the keypoints the model detects
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/{videoNameAndExt}" --save_video --outdir examples/saved/ --sp --vis_fast' )
-        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/AlphaPose_{videoNameAndExt}", f"./AlphaPoseLib/results/AlphaPose_{videoNameAndExt}" ])
-        subprocess.run(["docker", "cp", f"{model.id}:/build/AlphaPose/examples/saved/alphapose-results.json", f"./AlphaPoseLib/keypoints/AlphaPose_{videoName}.json"])
+    for i, videoName in enumerate(videoNames):
+
+        print(f"Video {i} running through AlphaPose")
+        model.exec_run(cmd=f'python3 /build/AlphaPose/scripts/demo_inference.py --detector yolox-x --cfg /build/AlphaPose/configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/{videoName}.mp4" --save_video --outdir /usr/src/app/media/ --sp --vis_fast')
+        print(f"Video {i} Finished")
 
     if stopAfterExecuting == True:
         Stop(model)
-        
 
     return allKeyPoints
 

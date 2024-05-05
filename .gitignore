@@ -167,6 +167,7 @@ Evaluation/Video*
 *.pt
 *.png
 env.txt
+videos/
 
 !docmedia/*
 
