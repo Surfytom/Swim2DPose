@@ -1,10 +1,19 @@
 import docker
 
 client = docker.from_env()
-client.pipelineContainerId = client.containers.list()[-1].id
+client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
+print("Pipeline Container ID: ", client.pipelineContainerId)
 
 def InitModel(config):
-    container = client.containers.run(**config)
+
+    alphaposeContainer = client.containers.list(all=True, filters={"name": "alphapose"})
+
+    if (len(alphaposeContainer) == 1):
+      # Alphapose container already exists
+      container = alphaposeContainer[-1]
+      container.start()
+    else:
+      container = client.containers.run(**config)
     # Print container ID
     print("Container ID:", container.id)
 
@@ -19,6 +28,7 @@ def LoadConfig(args):
     return {
         'image': 'lhlong1/alphapose:latest',
         'detach': True,
+        'name': 'alphapose',
         'device_requests': [
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
