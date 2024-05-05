@@ -34,7 +34,7 @@ Before you pull the images **please make sure you have enough disk space availab
 
 #### Pipeline Docker Image (~20GB)
 
-Pull the pipeline docker image from Docker Hub using this command:
+Pull the pipeline Docker image from Docker Hub using this command:
 
 ```
 Write command to pull pipeline image
@@ -64,8 +64,6 @@ The pipeline is the central part of this repository. It offers a command line in
 
 picture of pipeline
 
----
-
 ### Your First Command
 
 Open a terminal in the main Swim2DPose directory and run:
@@ -78,7 +76,7 @@ python Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s
 
 -s saves the output videos to the specified folder. If no argument is passed videos will be saved to 'Pipeline/results'
 
-Consult |insert pipeline readme link| for more information and configuration flags
+Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md) for more information and all available configuration flags.
 
 ## AlphaPose
 
