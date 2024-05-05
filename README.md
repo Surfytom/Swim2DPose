@@ -6,19 +6,19 @@ This is a repository for a university group project. This project contains a pip
 
 ### Setup And Pipeline
 
-[Setup](Setup)
+[Setup](#setup)
 
-[Pipeline]()
+[Pipeline](#pipeline)
 
 ### Supported Models
 
-[AlphaPose]()
+[AlphaPose](#alphapose)
 
-[OpenPose]()
+[OpenPose](#openpose)
 
-[DWPose]()
+[DWPose](#dwpose)
 
-[YoloNasNet]()
+[YoloNasNet](#yolonasnet)
 
 ## Setup
 
