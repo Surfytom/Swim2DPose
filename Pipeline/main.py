@@ -52,7 +52,7 @@ if __name__ == "__main__":
             raise RuntimeError("ERROR: Both -ldn and -ldk cannot be used together please select one (key if dataset is exising | name for new dataset)")
         
         if (args.labelprojname and not args.labelont):
-            raise RuntimeError("ERROR: Creating a new project with -lpk cannot be used with defining an ontology for the project with -lont")
+            raise RuntimeError("ERROR: Creating a new project with -lpn cannot be used without defining an ontology for the project with -lont")
 
     if DEBUG:
         print(args.folder)
@@ -153,19 +153,13 @@ if __name__ == "__main__":
         if args.save:
             utils.SaveImages(imageStack, args.fps, args.model, args.save)
 
-        if args.label:
+        if args.label and args.model == "DWPose":
 
             for i, input in enumerate(imageStack):
                 if len(input) <= 1:
                     paths.remove(i)
-
-            datasetKeyorName = args.labeldskey if args.labeldskey else args.labeldsname
-            datasetExisting = True if args.labeldskey else False
-
-            projectKeyorName = args.labelprojkey if args.labelprojkey else args.labelprojname
-            projectExisting = True if args.labelprojkey else False
                     
-            utils.SaveVideoAnnotationsToLabelBox(args.lk, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, paths, selectedKeyPoints)
+            utils.SaveVideoAnnotationsToLabelBox(args, paths, selectedKeyPoints)
 
     elif args.model == "OpenPose" or args.model == "AlphaPose":
         if DEBUG:

@@ -336,14 +336,20 @@ def SaveImages(imageStack, fps, poseModel, folderPath="/usr/src/app/media/result
 
     print(f"Outputs saved to {fp}")
 
-def SaveVideoAnnotationsToLabelBox(apiKey, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, videoPaths, frameKeyPoints):
+def SaveVideoAnnotationsToLabelBox(args, videoPaths, frameKeyPoints):
 
-    client = labelBox.InitializeClient(apiKey)
+    datasetKeyorName = args.labeldskey if args.labeldskey else args.labeldsname
+    datasetExisting = True if args.labeldskey else False
+
+    projectKeyorName = args.labelprojkey if args.labelprojkey else args.labelprojname
+    projectExisting = True if args.labelprojkey else False
+
+    client = labelBox.InitializeClient(args.labelkey)
 
     dataset = labelBox.InitializeDataset(client, datasetKeyorName, existing=datasetExisting)
 
     labelBox.AddToDataset(dataset, videoPaths)
 
-    project = labelBox.InitializeProject(client, projectKeyorName, videoPaths, existing=projectExisting)
+    project = labelBox.InitializeProject(client, projectKeyorName, args.labelont, videoPaths, existing=projectExisting)
 
     labelBox.AddAnnotations(client, project.uid, videoPaths, frameKeyPoints)

@@ -113,7 +113,8 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, selectedKeyPoints, strid
                         if drawBboxes:
                             cv2.rectangle(images[(j*stride)+p], (x, y), (x1, y1), (0, 0, 255), 2)
 
-                        selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
+                        if t != 133 and t != 134:
+                            selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
 
                 colourGen = GetBGRColours()
 
