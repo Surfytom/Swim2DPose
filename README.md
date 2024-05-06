@@ -20,7 +20,7 @@ This is a repository for a university group project. This project contains a pip
 
 [YoloNasNet](#yolonasnet)
 
-### Extra
+### Other
 
 [Evaluation Video Generator](#evaluation-video-generator)
 
@@ -95,6 +95,10 @@ python Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s
 ```-s``` saves the output videos to the specified folder. If no argument is passed videos will be saved to 'Pipeline/results'
 
 Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md) for more information and all available configuration flags.
+
+### Label Box Annotation Upload
+
+Label Box model annotation uploading is only supported by the DWPose model at the moment. For more information about how to use it please consult the [Label Box section of the Pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md#labelbox).
 
 ## AlphaPose
 
