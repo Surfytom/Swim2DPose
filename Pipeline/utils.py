@@ -10,7 +10,6 @@ DEBUG = False
 def GetFileNames(directory):
     file_names = []
     file_name_without_extensions = []
-
     files = []
 
     if type(directory) == str:
@@ -25,7 +24,7 @@ def GetFileNames(directory):
             file_name_without_extension, _ = os.path.splitext(os.path.basename(file).split('/')[-1])
             if (_ == ".avi" or _ == ".mp4" or _ == ".png" or _ == ".jpeg"):
                 file_names.append(file)
-                file_name_without_extensions.append(file_name_without_extension)
+                file_name_without_extensions.append({'name': file_name_without_extension, 'ext': _})
     return file_names, file_name_without_extensions
 
 # Problems when results from yolo model returns None current fix relies on first frame having a value to copy
@@ -311,11 +310,12 @@ def SaveImages(imageStack, fps, poseModel, folderPath="/usr/src/app/media/result
     if os.path.exists(f"{folderPath}/{poseModel}") == False:
         # Makes a new folder wtih the new highest run digit
         os.mkdir(f"{folderPath}/{poseModel}")
+            
+    dateTimeF = '{:%d-%m-%Y_%H-%M-%S}'.format(datetime.now())
 
     # Loops through each images or video in the stack outputting to an appropriate folder
     for item in imageStack:
 
-        dateTimeF = '{:%d-%m-%Y_%H-%M-%S}'.format(datetime.now())
         fp = f"{folderPath}/{poseModel}/{dateTimeF}"
 
         images = item['images']
@@ -324,10 +324,10 @@ def SaveImages(imageStack, fps, poseModel, folderPath="/usr/src/app/media/result
             os.mkdir(fp)
 
         if len(images) == 1:
-            cv2.imwrite(f"{fp}/{name}_{dateTimeF}.png", images[0])
+            cv2.imwrite(f"{fp}/{name}.png", images[0])
         else:
             shape = np.shape(images[0])
-            out = cv2.VideoWriter(f'{fp}/{name}_{dateTimeF}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
+            out = cv2.VideoWriter(f'{fp}/{name}.avi', cv2.VideoWriter_fourcc(*'XVID'), fps, (shape[1], shape[0]), True)
 
             for image in images:
                 out.write(image)
@@ -353,3 +353,22 @@ def SaveVideoAnnotationsToLabelBox(args, videoPaths, frameKeyPoints):
     project = labelBox.InitializeProject(client, projectKeyorName, args.labelont, videoPaths, existing=projectExisting)
 
     labelBox.AddAnnotations(client, project.uid, videoPaths, frameKeyPoints)
+
+def GetLatestSavedVideos(path):
+    allSubDirs = []
+    for dir in os.listdir(path):
+        subDir = os.path.join(path, dir)
+        if os.path.isdir(subDir): allSubDirs.append(subDir)
+    
+    latest_modified = max(allSubDirs, key=os.path.getmtime)
+
+    return latest_modified.split('/')[-1]
+
+def CreateResultFolder(folderPath, poseModel):
+    if os.path.exists(f"{folderPath}/results") == False:
+        # Make results folder if it does not exist
+        os.mkdir(f"{folderPath}/results")
+
+    if os.path.exists(f"{folderPath}/results/{poseModel}") == False:
+        # Makes a new results folder for the used model
+        os.mkdir(f"{folderPath}/results/{poseModel}")

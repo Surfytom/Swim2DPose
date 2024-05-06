@@ -28,7 +28,9 @@ RUN pip install super-gradients
 #RUN apt update
 RUN apt-get install -y --no-install-recommends ffmpeg
 
-RUN pip install ffmpeg-python
+RUN pip install ffmpeg-python docker
+
+RUN pip install docker
 
 RUN pip install docker
 
