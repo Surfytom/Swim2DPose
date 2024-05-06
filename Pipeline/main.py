@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
     parser.add_argument('-fps', "--fps", help="sets the frames per second of the output videos. Default is 24", default=24)
     parser.add_argument('-str', "--stride", help="stride of video loader (if set > 1 only processes frame every set frame. E.g 2 means only every 2 frames are processed). Default is 1", default=1)
-    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is './results'", default="./results")
+    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is './results'", default="/usr/src/app/media/results")
 
     parser.add_argument('-l', "--label", help='this flag enables annotation upload to labelbox (only DWPose is supported for now) | Please use -lk, -lpn or -lpk and -lont (if using -lpn) with this flag', action='store_true', default=False)
     parser.add_argument('-lk', "--labelkey", help='-label this flag enables annotation upload to labelbox (only DWPose is supported for now)')
@@ -162,6 +162,9 @@ if __name__ == "__main__":
     selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
 
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
+
+    if args.save:
+        utils.SaveImages(imageStack, args.fps, args.model, args.save)
 
     if args.label and args.model == "DWPose":
 

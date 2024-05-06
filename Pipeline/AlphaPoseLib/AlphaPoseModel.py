@@ -5,8 +5,8 @@ import cv2
 import pathlib
 
 client = docker.from_env()
-# client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
-# print("Pipeline Container ID: ", client.pipelineContainerId)
+client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
+print("Pipeline Container ID: ", client.pipelineContainerId)
 
 def InitModel(config):
 
@@ -120,7 +120,14 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                 selectedKeyPoints[i].append([])
 
                 x, y, x1, y1 = bboxes
+                print("Alphapose Bounding boxes: ", bboxes)
+                x2, y2, x3, y3 = bboxStack[i][j]
 
+                originX = x + x2
+                originY = y + y2
+
+                originX2 = x + (x2 + x3)
+                originY2 = y + (y2 + y3)
                 # loopLength = stride if (j*stride)+stride < len(images) else len(images) - (j*stride)
 
                 # #print(f"loop length: {loopLength}")
@@ -137,14 +144,15 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                     for t, (keyX, keyY, keyZ) in enumerate(keyPointArray):
 
                         if drawText:
-                            cv2.putText(images[imageIdx], f"{t}", ((x+int(keyX))-10, (y+int(keyY))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
+                            cv2.putText(images[imageIdx], f"{t}", ((originX + int(keyX))-10, ((originY+int(keyY)))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
                         if drawKeypoints:
-                            cv2.circle(images[imageIdx], (x + int(keyX), y + int(keyY)), 3, (255,255,255), -1)
+                            cv2.circle(images[imageIdx], (x2 + int(keyX), y2 + int(keyY)), 3, (255,255,255), -1)
                             isDrawn[t] = 1
                         if drawBboxes:
-                            cv2.rectangle(images[imageIdx], (x, y), (x1, y1), (0, 0, 255), 2)
+                            cv2.rectangle(images[imageIdx], (originX, originY), (originX2, originY2), (0, 0, 255), 2)
 
-                            selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
+                            selectedKeyPoints[i][j].append([(originY+keyX), (originX+keyY)])
+                        cv2.rectangle(images[imageIdx], (x2, y2), ((x2 + x3), (y2 + y3)), (0, 255, 255), 2)
                         # colourGen = GetBGRColours()
 
                     # if drawEdges:
