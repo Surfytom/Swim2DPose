@@ -115,14 +115,7 @@ if __name__ == "__main__":
 
     startTime = time.perf_counter()
 
-    with open("keypointGroupings.json", "r") as f:
-        keypointGroups = json.load(f)
-
-    selectedPoints = keypointGroups[args.model]
-
-    startTime = time.perf_counter()
-
-    yoloModel = yolo.InitModel("Pipeline/YoloUltralyticsLib/Models/yolov8x-seg.pt")
+    yoloModel = yolo.InitModel("yolov8x-seg.pt")
 
     # Need to send yolo segmented images to dwpose model
     results = yolo.YOLOSegment(yoloModel, inputStack)

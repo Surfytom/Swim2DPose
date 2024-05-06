@@ -2,6 +2,7 @@ import docker
 import json
 import numpy as np  
 import cv2
+import pathlib
 
 client = docker.from_env()
 # client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
@@ -35,13 +36,7 @@ def LoadConfig(mountedPath):
         'device_requests': [
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
-        # 'volumes_from': [client.pipelineContainerId],
-        'volume': {
-            f'{mountedPath}': {
-                'bind': '/data',
-                'rw': True
-            }
-        },
+        'volumes_from': [client.pipelineContainerId],
         'stdin_open': True,  # Keep STDIN open even if not attached (-i)
         'tty': True,  # Allocate a pseudo-TTY (-t)
         'auto_remove': True
@@ -57,10 +52,10 @@ def Inference(model, videoNames, videosPath, stopAfterExecuting=True):
 
         print(f"Video {videosPath}/{videoNameAndExt} running through AlphaPose")
 
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/SegmentedVideos/AlphaPose/{videosPath}/{videoNameAndExt}" --save_video --outdir "/data/results/AlphaPose/{videosPath}/{videoName}" --sp --vis_fast')
+        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/SegmentedVideos/AlphaPose/{videosPath}/{videoNameAndExt}" --save_video --outdir "/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}" --sp --vis_fast')
         print(f"Video {videosPath}/{videoNameAndExt} Finished")
 
-        allResultPaths.append(f'/home/student/horizon-coding/Swim2DPose/data/results/AlphaPose/{videosPath}/{videoName}')
+        allResultPaths.append(f'/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}')
 
     if stopAfterExecuting == True:
         Stop(model)
@@ -91,7 +86,9 @@ def GetBGRColours():
 
 def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
-    with open("keypointGroupings.json", "r") as f:
+    print("results path: ", resultPaths)
+
+    with open(f"/usr/src/app/Swim2DPose/Pipeline/keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
     
     selectedPoints = keypointGroups["AlphaPose"]

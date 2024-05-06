@@ -67,7 +67,7 @@ The pipeline is the central part of this repository. It offers a command line in
 
 If you have never run the pipeline container and it does not exist in your list of containers on Docker then run this command:
 ```
-docker run -it --gpus --rm all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" pipeline:latest
+docker run -it --rm --name pipeline --gpus all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" pipeline:latest
 ```
 
 ### Your First Command
