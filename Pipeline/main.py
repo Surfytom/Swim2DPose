@@ -5,6 +5,7 @@ import time
 import argparse
 import utils
 import pathlib
+import shutil
 
 currentPath = pathlib.Path(__file__).parent.resolve()
 
@@ -150,6 +151,7 @@ if __name__ == "__main__":
     elif args.model == "OpenPose" or args.model == "AlphaPose":
         _, inputFileNamesAndExts = utils.GetFileNames(f'{args.folder}/SegmentedVideos/{args.model}/{videosPath}')
         keyPoints = poseModel.Inference(model, inputFileNamesAndExts, videosPath)
+        shutil.rmtree(f'{args.folder}/SegmentedVideos')
     
     endTime2 = time.perf_counter()
     print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))

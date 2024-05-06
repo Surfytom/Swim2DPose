@@ -1,5 +1,6 @@
 import docker
 import json
+import cv2
 
 client = docker.from_env()
 client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
