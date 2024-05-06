@@ -1,10 +1,11 @@
 import docker
 import json
+import numpy as np  
 import cv2
 
 client = docker.from_env()
-client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
-print("Pipeline Container ID: ", client.pipelineContainerId)
+# client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
+# print("Pipeline Container ID: ", client.pipelineContainerId)
 
 def InitModel(config):
 
@@ -34,7 +35,13 @@ def LoadConfig(mountedPath):
         'device_requests': [
             docker.types.DeviceRequest(count=-1, capabilities=[['gpu']])
         ],
-        'volumes_from': [client.pipelineContainerId],
+        # 'volumes_from': [client.pipelineContainerId],
+        'volume': {
+            f'{mountedPath}': {
+                'bind': '/data',
+                'rw': True
+            }
+        },
         'stdin_open': True,  # Keep STDIN open even if not attached (-i)
         'tty': True,  # Allocate a pseudo-TTY (-t)
         'auto_remove': True
@@ -42,7 +49,7 @@ def LoadConfig(mountedPath):
 
 def Inference(model, videoNames, videosPath, stopAfterExecuting=True):
 
-    allKeyPoints = []
+    allResultPaths = []
 
     for i, video in enumerate(videoNames):
         videoNameAndExt = video['name'] + video['ext']
@@ -50,13 +57,15 @@ def Inference(model, videoNames, videosPath, stopAfterExecuting=True):
 
         print(f"Video {videosPath}/{videoNameAndExt} running through AlphaPose")
 
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/SegmentedVideos/AlphaPose/{videosPath}/{videoNameAndExt}" --save_video --outdir "/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}" --sp --vis_fast')
+        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/data/SegmentedVideos/AlphaPose/{videosPath}/{videoNameAndExt}" --save_video --outdir "/data/results/AlphaPose/{videosPath}/{videoName}" --sp --vis_fast')
         print(f"Video {videosPath}/{videoNameAndExt} Finished")
+
+        allResultPaths.append(f'/home/student/horizon-coding/Swim2DPose/data/results/AlphaPose/{videosPath}/{videoName}')
 
     if stopAfterExecuting == True:
         Stop(model)
 
-    return allKeyPoints
+    return allResultPaths
 
 def GetBGRColours():
 
@@ -80,64 +89,72 @@ def GetBGRColours():
     for colour in colours:
         yield colour
 
-def DrawKeypoints(inputStack, keyPointStack, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
+def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=True, drawBboxes=True, drawText=True, drawEdges=True):
 
     with open("keypointGroupings.json", "r") as f:
         keypointGroups = json.load(f)
-
+    
     selectedPoints = keypointGroups["AlphaPose"]
 
-    selectedKeyPoints = []
-    
-    for i in range(len(bboxStack)):
+    keypointResults = None
+    for i, path in enumerate(resultPaths): 
+        with open(f"{path}/alphapose-results.json", "r") as f:
+            keypointResults = json.load(f)   
+            for j, arrItem in enumerate(keypointResults):     
+                print(arrItem["image_id"])    
+                imageIdx = int(arrItem["image_id"].replace(".jpg", ""))          
+                keyPointArray = np.array(arrItem['keypoints']).astype(np.uint8).reshape((26, 3))
+                bboxes = np.array(arrItem['box']).astype(np.uint8)
+                # Zeros the confidence score     
+                print("index: ", imageIdx, " keypoints: ", np.array(keyPointArray))
 
-        images = inputStack[i]
-        keyPoints = keyPointStack[i]
-        bboxes = bboxStack[i]
+                selectedKeyPoints = []
+                
+                images = inputStack[i]['images']
+                # keyPoints = keypointResults[i]
 
-        selectedKeyPoints.append([])
+                selectedKeyPoints.append([])
 
-        for j in range(len(bboxes)):
+                # for j in range(len(bboxes)):
 
-            keyPointArray = keyPoints[j]
-            box = bboxes[j]
+                # keyPointArray = keyPoints[j]
+                # box = bboxes[j]
 
-            selectedKeyPoints[i].append([])
+                selectedKeyPoints[i].append([])
 
-            x, y, x1, y1 = box
+                x, y, x1, y1 = bboxes
 
-            loopLength = stride if (j*stride)+stride < len(images) else len(images) - (j*stride)
+                # loopLength = stride if (j*stride)+stride < len(images) else len(images) - (j*stride)
 
-            #print(f"loop length: {loopLength}")
+                # #print(f"loop length: {loopLength}")
 
-            for p in range(loopLength):
-                #print(f"p value: {(j*stride)+p}")
+                # for p in range(loopLength):
+                    #print(f"p value: {(j*stride)+p}")
 
-                #print(f"keypoint array: {keyPointArray}")
+                    #print(f"keypoint array: {keyPointArray}")
 
-                if len(keyPointArray.poses) != 0:
+                if len(keyPointArray) != 0:
 
-                    isDrawn = np.zeros((keyPointArray.poses[0].shape[0], 1), dtype=np.uintp)
+                    isDrawn = np.zeros((keyPointArray.shape[0], 1), dtype=np.uintp)
 
-                    for t, (keyX, keyY, keyZ) in enumerate(keyPointArray.poses[0]):
+                    for t, (keyX, keyY, keyZ) in enumerate(keyPointArray):
 
-                        if t in selectedPoints:
-                            if drawText:
-                                cv2.putText(images[(j*stride)+p], f"{t}", ((x+int(keyX))-10, (y+int(keyY))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
-                            if drawKeypoints:
-                                cv2.circle(images[(j*stride)+p], (x + int(keyX), y + int(keyY)), 3, np.array(keyPointArray.keypoint_colors[t]).tolist(), -1)
-                                isDrawn[t] = 1
-                            if drawBboxes:
-                                cv2.rectangle(images[(j*stride)+p], (x, y), (x1, y1), (0, 0, 255), 2)
+                        if drawText:
+                            cv2.putText(images[imageIdx], f"{t}", ((x+int(keyX))-10, (y+int(keyY))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
+                        if drawKeypoints:
+                            cv2.circle(images[imageIdx], (x + int(keyX), y + int(keyY)), 3, (255,255,255), -1)
+                            isDrawn[t] = 1
+                        if drawBboxes:
+                            cv2.rectangle(images[imageIdx], (x, y), (x1, y1), (0, 0, 255), 2)
 
                             selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
-                    if drawEdges:
-                        for k, (origin, dest) in enumerate(np.array(keyPointArray.edge_links)):
-                            #print(f"{keyPointArray.poses[0][origin][:2].astype(np.uintp)} | {keyPointArray.poses[0][dest][:2].astype(np.uintp)} | {keyPointArray.edge_colors[k]}")
-                            if isDrawn[origin] and isDrawn[dest]:
+                        # colourGen = GetBGRColours()
 
-                                #print(f"x, y: {x} {y} line before: {keyPointArray.poses[0][origin][:2].astype(np.uintp)} after : {[x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)} {type([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp))}")
-                                cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)).astype(np.uintp), ([x, y] + keyPointArray.poses[0][dest][:2].astype(np.uintp)).astype(np.uintp), np.array(keyPointArray.edge_colors[k]).tolist(), 3)
+                    # if drawEdges:
+                    #     for edgeGroup in edgeLinks:
+                    #         for point1, point2 in edgeLinks[edgeGroup]:
+                    #             cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray[selectedPoints[point1]]), ([x, y] + keyPointArray[selectedPoints[point2]]), next(colourGen), 3)        
+                    
 
     return selectedKeyPoints
 
