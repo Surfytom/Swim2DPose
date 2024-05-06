@@ -20,6 +20,10 @@ This is a repository for a university group project. This project contains a pip
 
 [YoloNasNet](#yolonasnet)
 
+### Other
+
+[Evaluation Video Generator](#evaluation-video-generator)
+
 ## Setup
 
 This project contains dockerfiles for each model environment and one for the pipeline (the pipeline docker file includes DWPose and YoloNasNet). This is to ensure the project stays modular allowing people to add new models using docker easily.
@@ -92,6 +96,10 @@ python Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s
 
 Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md) for more information and all available configuration flags.
 
+### Label Box Annotation Upload
+
+Label Box model annotation uploading is only supported by the DWPose model at the moment. For more information about how to use it please consult the [Label Box section of the Pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md#labelbox).
+
 ## AlphaPose
 
 ### Preview
@@ -119,3 +127,23 @@ Please consult the [DWPose readme](https://github.com/Surfytom/Swim2DPose/blob/m
 ![preview video](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DivingYoloNasNet.gif)
 
 Please consult the [YoloNasNet readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/YoloNasNetLib/YoloNasNetREADME.md) for information on getting started with the model.
+
+## Evaluation Video Generator
+
+The folder Evaluation contains an evaluation video generator which can take videos from a folder and randomly select frames within them resulting in a collage of random consecutive frames from a selection of videos. It is useful if you want to evaluate a pose model on different body types and locations quickly as you just have to run a model on one video instead of multiple.
+
+Using it is as simple as running the pipeline container. The running the following command:
+
+```
+python3 Evaluation/EvaluationDataGenerator.py -fo folder/to/videos -type mp4 -N 3 -K 10 -C 1 -D 1
+```
+
+```-type``` should be a video file type like ```avi``` or ```mp4```
+
+```-N``` Is the number of total videos you want to randomly sample
+
+```-K``` Is the number of consecutive frames to sample from each video. Default is 10
+
+```-C``` Use to set beggining cutoff section. 1 means no frames are ignored. Default is 2 meaning the first half of the video is ignored
+
+```-D``` Use to set ending cutoff section. 1 means no frames are ignored. Default is 1 meaning no frames are ignored

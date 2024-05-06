@@ -5,11 +5,12 @@ import time
 import argparse
 import utils
 import pathlib
-import cv2
 
 currentPath = pathlib.Path(__file__).parent.resolve()
 
-print("currentPath: ", currentPath)
+print("Current File Path: ", currentPath)
+
+DEBUG = False
 
 if __name__ == "__main__":
 
@@ -51,16 +52,17 @@ if __name__ == "__main__":
             raise RuntimeError("ERROR: Both -ldn and -ldk cannot be used together please select one (key if dataset is exising | name for new dataset)")
         
         if (args.labelprojname and not args.labelont):
-            raise RuntimeError("ERROR: Creating a new project with -lpk cannot be used with defining an ontology for the project with -lont")
+            raise RuntimeError("ERROR: Creating a new project with -lpn cannot be used without defining an ontology for the project with -lont")
 
-    print(args.folder)
-    print(args.inputpaths)
-    print(args.label)
-    print(args.mask)
-    print(args.fps)
-    print(args.model)
-    print(args.save)
-    print(args.stride)
+    if DEBUG:
+        print(args.folder)
+        print(args.inputpaths)
+        print(args.label)
+        print(args.mask)
+        print(args.fps)
+        print(args.model)
+        print(args.save)
+        print(args.stride)
 
     if args.model == "DWPose":
         import DWPoseLib.DwPose as poseModel
@@ -71,7 +73,7 @@ if __name__ == "__main__":
     if args.model == "AlphaPose":
         import AlphaPoseLib.AlphaPoseModel as poseModel
 
-    print("Cuda Available: ", cuda.is_available())
+    print("GPU Available: ", cuda.is_available())
     
     paths = []
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
@@ -82,11 +84,14 @@ if __name__ == "__main__":
     # Get the file names in the directory
     fileNames, fileNamesAndExtensions = utils.GetFileNames(args.folder if args.folder else args.inputpaths)
 
-    print("File names in the directory:")
+    print("Files that are going to be processed:")
     print(fileNames)
 
     inputStack = []
     imageStack = []
+
+    if (len(fileNames) <= 0) :
+        raise ValueError("File array is empty!!!")
 
     for i, fileName in enumerate(fileNames):
         images, strideImages = utils.LoadMediaPath(f'{fileName}', args.stride)
@@ -94,10 +99,11 @@ if __name__ == "__main__":
         inputStack.append({ 'images': images, 'name': fileNamesAndExtensions[i]['name'] } if args.stride == 1 else { images: strideImages, 'name': fileNamesAndExtensions[i]['name'] })
         imageStack.append({ 'images': images, 'name': fileNamesAndExtensions[i]['name'] })
 
-        print(f"path: {fileName}\nFrame Count: {len(images)}\n")
+        print(f"path: {fileName} Loaded | Frame Count: {len(images)}\n")
 
-    print(f"Image stack length {len(imageStack[0]['images'])}")
-    print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
+    if DEBUG:
+        print(f"Image stack length {len(imageStack[0]['images'])}")
+        print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
 
     # if args.model == "DWPose" or args.model == "YoloNasNet":
 
@@ -158,23 +164,14 @@ if __name__ == "__main__":
     #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
     #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
     #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
-    # selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
+    selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
 
     # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
 
-    # if args.save:
-    #     utils.SaveImages(imageStack, args.fps, args.model, args.save)
+    if args.label and args.model == "DWPose":
 
-    if args.label:
-
-        for i, input in enumerate(imageStack):
-            if len(input) <= 1:
-                paths.remove(i)
-
-        datasetKeyorName = args.labeldskey if args.labeldskey else args.labeldsname
-        datasetExisting = True if args.labeldskey else False
-
-        projectKeyorName = args.labelprojkey if args.labelprojkey else args.labelprojname
-        projectExisting = True if args.labelprojkey else False
-                
-        utils.SaveVideoAnnotationsToLabelBox(args.lk, datasetKeyorName, datasetExisting, projectKeyorName, projectExisting, paths, selectedKeyPoints)
+            for i, input in enumerate(imageStack):
+                if len(input) <= 1:
+                    paths.remove(i)
+                    
+            utils.SaveVideoAnnotationsToLabelBox(args, paths, selectedKeyPoints)
