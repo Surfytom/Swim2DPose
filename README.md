@@ -67,17 +67,8 @@ The pipeline is the central part of this repository. It offers a command line in
 
 If you have never run the pipeline container and it does not exist in your list of containers on Docker then run this command:
 ```
-docker run -it --gpus all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" pipeline:latest
+docker run -it --gpus --rm all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" pipeline:latest
 ```
-
-The pipeline will save results to the first mounted volume. If you want to mount a new folder please delete the pipeline **CONTAINER** (not image) and then run the command above again with a new path.
-
-If you have already got a pipeline container within the Docker container list that you want to run again please use the following command:
-```
-docker start pipeline && docker exec -it pipeline bash
-```
-
-After you are done type ```exit``` within the container to leave it and then type ```docker stop pipeline``` to stop the pipeline container.
 
 ### Your First Command
 

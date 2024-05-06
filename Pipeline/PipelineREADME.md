@@ -56,7 +56,7 @@ First you need determine which flags you need to use. There will be a list of qu
 Yes:
 
 ```
-python3 Pipeline/main.py -m DWPose -l -lk <labelboxapikey>
+python3 Pipeline/main.py -m DWPose -fo path/to/videos -l -lk <labelboxapikey>
 ```
 
 No:
@@ -68,7 +68,7 @@ No need to carry on with these questions. Please consult the [upper section of t
 Yes:
 
 ```
--ldk <existingdatasetkey>
+-ldk <existinglabelboxdatasetkey>
 ```
 
 No:
@@ -82,7 +82,7 @@ No:
 Yes:
 
 ```
--lpk <existingprojectkey>
+-lpk <existinglabelboxprojectkey>
 ```
 
 No:
@@ -94,7 +94,7 @@ Ensure the ontology has a list of points with these names: ```["Face", "Shoulder
 Once this is created you can copy the command below:
 
 ```
--lpn <newprojectname> -lont <existingontologykey>
+-lpn <newprojectname> -lont <existinglabelboxontologykey>
 ```
 
 ### Common Errors
