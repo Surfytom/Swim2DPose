@@ -300,8 +300,10 @@ def DrawKeypoints(inputStack, keyPointStack, bboxeStack, selectedPoints, stride=
 
     return selectedKeyPoints
 
-def SaveImages(imageStack, fps, poseModel, folderPath="/usr/src/app/media/results"):
+def SaveImages(imageStack, fps, poseModel, folderPath="/usr/src/app/media"):
     # This saves an images stack to a specific output folder
+
+    folderPath += "/results"
 
     if os.path.exists(folderPath) == False:
         # Make results folder if it does not exist

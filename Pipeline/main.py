@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
     parser.add_argument('-fps', "--fps", help="sets the frames per second of the output videos. Default is 24", default=24)
     parser.add_argument('-str', "--stride", help="stride of video loader (if set > 1 only processes frame every set frame. E.g 2 means only every 2 frames are processed). Default is 1", default=1)
-    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is './results'", default="/usr/src/app/media/results")
+    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is '/usr/src/app/media'", default="/usr/src/app/media")
 
     parser.add_argument('-l', "--label", help='this flag enables annotation upload to labelbox (only DWPose is supported for now) | Please use -lk, -lpn or -lpk and -lont (if using -lpn) with this flag', action='store_true', default=False)
     parser.add_argument('-lk', "--labelkey", help='-label this flag enables annotation upload to labelbox (only DWPose is supported for now)')
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     path = "/home/student/horizon-coding/Swim2DPose/data" # change this when make a deployment
 
     # Create results folder
-    utils.CreateResultFolder(args.folder, args.model)
+    utils.CreateResultFolder(args.save, args.model)
 
     # Get the file names in the directory
     fileNames, fileNamesAndExtensions = utils.GetFileNames(args.folder if args.folder else args.inputpaths)
@@ -106,70 +106,61 @@ if __name__ == "__main__":
         print(f"Image stack length {len(imageStack[0]['images'])}")
         print(f"stride {args.stride} stack length {len(inputStack[0]['images'])}")
 
-    # if args.model == "DWPose" or args.model == "YoloNasNet":
-
-    with open(f"{pathlib.Path(__file__).parent.resolve()}/keypointGroupings.json", "r") as f:
-        keypointGroups = json.load(f)
-
-    selectedPoints = keypointGroups[args.model]
-
-    startTime = time.perf_counter()
-
-    yoloModel = yolo.InitModel("yolov8x-seg.pt")
-
-    # Need to send yolo segmented images to dwpose model
-    results = yolo.YOLOSegment(yoloModel, inputStack)
-
-    segmentedImageStack, Bboxes = utils.MaskSegment(inputStack, results) if args.mask else utils.BboxSegment(inputStack, results)
-
-    if args.model == "OpenPose" or args.model == "AlphaPose":
-        utils.SaveImages(segmentedImageStack, args.fps, args.model, f'{args.folder}/SegmentedVideos')
-        videosPath = utils.GetLatestSavedVideos(f'{args.folder}/SegmentedVideos/{args.model}')
-        currentPath = args.folder
-
-    startTime2 = time.perf_counter()
-
-    print(f"Loading Config For {args.model}")
-
     # Loads the models specific config file
+    print(f"Loading Config For {args.model}")
     config = poseModel.LoadConfig(currentPath)
+    
 
     # This function initialises and return a model with a weight and config path
+    print(f"Initializing {args.model}")
     model = poseModel.InitModel(config)
 
-    # This function runs the model and gets a result in the format
-    # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
     if args.model == "DWPose" or args.model == "YoloNasNet":
-        keyPoints = poseModel.Inference(model, segmentedImageStack, Bboxes, config)
+
+      with open(f"{pathlib.Path(__file__).parent.resolve()}/keypointGroupings.json", "r") as f:
+          keypointGroups = json.load(f)
+  
+      selectedPoints = keypointGroups[args.model]
+  
+      startTime = time.perf_counter()
+  
+      yoloModel = yolo.InitModel("yolov8x-seg.pt")
+  
+      # Need to send yolo segmented images to dwpose model
+      results = yolo.YOLOSegment(yoloModel, inputStack)
+  
+      segmentedImageStack, Bboxes = utils.MaskSegment(inputStack, results) if args.mask else utils.BboxSegment(inputStack, results)
+
+      startTime2 = time.perf_counter()
+
+      # This function runs the model and gets a result in the format
+      # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+      keyPoints = poseModel.Inference(model, segmentedImageStack, Bboxes, config)
+
+      endTime2 = time.perf_counter()
+      print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
+      
+      # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
+      # INPUTS:
+      #   inputStack      : array of images         [[frames], [frames], ...]
+      #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
+      #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
+      #   selectedPoints  : array of selected points
+      #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
+      #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
+      #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
+      #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
+      selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
+     
     elif args.model == "OpenPose" or args.model == "AlphaPose":
-        _, inputFileNamesAndExts = utils.GetFileNames(f'{args.folder}/SegmentedVideos/{args.model}/{videosPath}')
-        keyPoints = poseModel.Inference(model, inputFileNamesAndExts, videosPath)
-        shutil.rmtree(f'{args.folder}/SegmentedVideos')
-    
-    endTime2 = time.perf_counter()
-    print("Time in seconds for pose estimation inference: ", (endTime2 - startTime2))
-
-    # This function takes in numerous inputs and outputs the keypoint positions of selected keypoints (A potential subset of the models potential keypoints)
-    # INPUTS:
-    #   inputStack      : array of images         [[frames], [frames], ...]
-    #   keyPointStack   : array of keypoints      [[keypointsframe1, keypointsframe2, ...], [keypointsframe1, keypointsframe2, ...], ...]
-    #   bboxStack       : array of bounding boxes [[bboxframe1, bboxframe1, ...], [bboxframe1, bboxframe1, ...], ...]
-    #   selectedPoints  : array of selected points
-    #   stride          : int value detemining the stride of images (10 would indicate the model generated keypoints for every 10th frame)
-    #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
-    #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
-    #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
-    selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
-
-    # *** THIS IS WHAT NEEDS TO BE CHANGED TO IMPLEMENT A NEW POSE MODEL ***
-
-    if args.save:
-        utils.SaveImages(imageStack, args.fps, args.model, args.save)
+      # This function runs the model and gets a result in the format
+      # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+      keyPoints = poseModel.Inference(model, fileNamesAndExtensions)
 
     if args.label and args.model == "DWPose":
 
-            for i, input in enumerate(imageStack):
-                if len(input) <= 1:
-                    paths.remove(i)
-                    
-            utils.SaveVideoAnnotationsToLabelBox(args, paths, selectedKeyPoints)
+      for i, input in enumerate(imageStack):
+          if len(input) <= 1:
+            paths.remove(i)
+              
+      utils.SaveVideoAnnotationsToLabelBox(args, paths, selectedKeyPoints)

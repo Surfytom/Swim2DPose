@@ -3,6 +3,7 @@ import json
 import numpy as np  
 import cv2
 import pathlib
+from datetime import datetime
 
 client = docker.from_env()
 client.pipelineContainerId = client.containers.list(filters={"name": "pipeline"})[-1].id
@@ -42,20 +43,21 @@ def LoadConfig(mountedPath):
         'auto_remove': True
     }
 
-def Inference(model, videoNames, videosPath, stopAfterExecuting=True):
+def Inference(model, videoNames, stopAfterExecuting=True):
 
     allResultPaths = []
 
+    datestring = '{:%d-%m-%Y_%H-%M-%S}'.format(datetime.now())
+
     for i, video in enumerate(videoNames):
         videoNameAndExt = video['name'] + video['ext']
-        videoName = video['name']
 
-        print(f"Video {videosPath}/{videoNameAndExt} running through AlphaPose")
+        print(f"Video '{videoNameAndExt}' running through AlphaPose")
 
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/SegmentedVideos/AlphaPose/{videosPath}/{videoNameAndExt}" --save_video --outdir "/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}" --sp --vis_fast')
-        print(f"Video {videosPath}/{videoNameAndExt} Finished")
+        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/{videoNameAndExt}" --save_video --outdir "/usr/src/app/media/results/AlphaPose/{datestring}" --sp --vis_fast')
+        print(f"Video {videoNameAndExt} Finished")
 
-        allResultPaths.append(f'/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}')
+        allResultPaths.append(f'/usr/src/app/media/results/AlphaPose/{videoNameAndExt}')
 
     if stopAfterExecuting == True:
         Stop(model)
@@ -120,14 +122,7 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                 selectedKeyPoints[i].append([])
 
                 x, y, x1, y1 = bboxes
-                print("Alphapose Bounding boxes: ", bboxes)
-                x2, y2, x3, y3 = bboxStack[i][j]
 
-                originX = x + x2
-                originY = y + y2
-
-                originX2 = x + (x2 + x3)
-                originY2 = y + (y2 + y3)
                 # loopLength = stride if (j*stride)+stride < len(images) else len(images) - (j*stride)
 
                 # #print(f"loop length: {loopLength}")
@@ -144,15 +139,14 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                     for t, (keyX, keyY, keyZ) in enumerate(keyPointArray):
 
                         if drawText:
-                            cv2.putText(images[imageIdx], f"{t}", ((originX + int(keyX))-10, ((originY+int(keyY)))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
+                            cv2.putText(images[imageIdx], f"{t}", ((x+int(keyX))-10, (y+int(keyY))-10), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 255, 0), 2)
                         if drawKeypoints:
-                            cv2.circle(images[imageIdx], (x2 + int(keyX), y2 + int(keyY)), 3, (255,255,255), -1)
+                            cv2.circle(images[imageIdx], (x + int(keyX), y + int(keyY)), 3, (255,255,255), -1)
                             isDrawn[t] = 1
                         if drawBboxes:
-                            cv2.rectangle(images[imageIdx], (originX, originY), (originX2, originY2), (0, 0, 255), 2)
+                            cv2.rectangle(images[imageIdx], (x, y), (x1, y1), (0, 0, 255), 2)
 
-                            selectedKeyPoints[i][j].append([(originY+keyX), (originX+keyY)])
-                        cv2.rectangle(images[imageIdx], (x2, y2), ((x2 + x3), (y2 + y3)), (0, 255, 255), 2)
+                            selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
                         # colourGen = GetBGRColours()
 
                     # if drawEdges:
@@ -162,7 +156,6 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                     
 
     return selectedKeyPoints
-
 
 def Stop(model):
     model.stop()
