@@ -154,8 +154,10 @@ if __name__ == "__main__":
     elif args.model == "OpenPose" or args.model == "AlphaPose":
       # This function runs the model and gets a result in the format
       # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-      keyPoints = poseModel.Inference(model, fileNamesAndExtensions)
-
+      if args.model == "OpenPose": 
+        keyPoints = poseModel.Inference(model, fileNamesAndExtensions, args.saved)
+      else:
+        keyPoints = poseModel.Inference(model, fileNamesAndExtensions)
     if args.label and args.model == "DWPose":
 
       for i, input in enumerate(imageStack):
