@@ -17,13 +17,14 @@ Inside the docker:
 
 ```.c
 ./build/examples/openpose/openpose.bin --video {video path which is normally is /data/video-name.ext} --display 0 --hand --write_json {results folder path which contains json files which each of them is a key points result of a frame of the input video}  --write_video {output video name}.avi (the model container only supports output videos with .avi extension)
+```
 
 
-## Using OpenPose within the pipeline
+# Using OpenPose within the pipeline
 
 To use OpenPose Run the following command within the pipeline container command line:
 
-```
+
 python3 Pipeline/main.py -m OpenPose -s {path to the volume you want to mount into the container}
 
 If you don't have the pipeline container installed please follow the setup guide in the main [readme](https://github.com/Surfytom/Swim2DPose/blob/main/README.md#pipeline).
