@@ -2,7 +2,6 @@ import torch
 import cv2
 import numpy as np
 import json
-import pathlib
 
 from mmpose.apis import inference_topdown, init_model
 from mmpose.utils import register_all_modules
@@ -12,7 +11,6 @@ from mmpose.utils import register_all_modules
 register_all_modules()
 
 def LoadConfig(currentPath):
-    print(currentPath)
     with open(f"{currentPath}/DWPoseLib/config.json", "r") as f:
         config = json.load(f)
         config['currentPath'] = currentPath
@@ -48,21 +46,13 @@ def Inference(model, imageStack, bboxes, config):
 
 def GetBGRColours():
 
-    # colours = [
-    #     (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
-    #     (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
-    #     (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
-    #     (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
-    #     (255, 255, 255), (0, 0, 0), (128, 0, 0)
-    # ]
-
     colours = [
         (75, 25, 230), (75, 180, 60), (25, 225, 255), (216, 99, 67), (49, 130, 245),
         (180, 30, 145), (244, 212, 66), (230, 50, 240), (69, 239, 191), (212, 190, 250),
         (144, 153, 70), (255, 190, 220), (36, 99, 154), (200, 250, 255), (0, 0, 128),
         (195, 255, 170), (0, 128, 128), (177, 216, 255), (117, 0, 0), (169, 169, 169),
         (255, 255, 255), (0, 0, 0), (128, 0, 0),
-        (255, 0, 128), (0, 255, 128)  # Two visually distinct colors added
+        (255, 0, 128), (0, 255, 128)
     ]
 
     for colour in colours:
@@ -129,21 +119,3 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, selectedKeyPoints, strid
                             cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray[selectedPoints[point1]]), ([x, y] + keyPointArray[selectedPoints[point2]]), next(colourGen), 3)
 
     return selectedKeyPoints
-
-if __name__ == "__main__":
-
-    print(torch.cuda.is_available())
-
-    image = cv2.imread("guy.jpeg")
-
-    config = LoadConfig()
-
-    model = InitModel(config)
-
-    print("Model loaded")
-
-    keypoints = Inference(model, [[image]], config)
-
-    DrawKeypoints([[image]], keypoints, [[[0, 0, 100, 100]]], 1, True, False, True, True)
-
-    cv2.imwrite("test.jpeg", image)

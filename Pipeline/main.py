@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
     parser.add_argument('-fps', "--fps", help="sets the frames per second of the output videos. Default is 24", default=24)
     parser.add_argument('-str', "--stride", help="stride of video loader (if set > 1 only processes frame every set frame. E.g 2 means only every 2 frames are processed). Default is 1", default=1)
-    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is '/usr/src/app/media'", default="/usr/src/app/media")
+    parser.add_argument('-s', "--save", help="saves output of pipeline to this folder. Default is '/usr/src/app/media'. '/results' gets added to this folder path", default="/usr/src/app/media")
 
     parser.add_argument('-l', "--label", help='this flag enables annotation upload to labelbox (only DWPose is supported for now) | Please use -lk, -lpn or -lpk and -lont (if using -lpn) with this flag', action='store_true', default=False)
     parser.add_argument('-lk', "--labelkey", help='-label this flag enables annotation upload to labelbox (only DWPose is supported for now)')
@@ -85,8 +85,7 @@ if __name__ == "__main__":
     # Get the file names in the directory
     fileNames, fileNamesAndExtensions = utils.GetFileNames(args.folder if args.folder else args.inputpaths)
 
-    print("Files that are going to be processed:")
-    print(fileNames)
+    print("Files that are going to be processed: ", fileNames)
 
     inputStack = []
     imageStack = []
@@ -109,7 +108,6 @@ if __name__ == "__main__":
     # Loads the models specific config file
     print(f"Loading Config For {args.model}")
     config = poseModel.LoadConfig(currentPath)
-    
 
     # This function initialises and return a model with a weight and config path
     print(f"Initializing {args.model}")
@@ -150,6 +148,7 @@ if __name__ == "__main__":
       #   drawKeypoints   : boolean value determining wether the function should draw keypoints on the image
       #   drawBboxes      : boolean value determining wether the function should draw the bounding boxes on the image
       #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
+      #   drawEdges        : boolean value determining wether the function should draw the edges between each keypoints
       selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
      
     elif args.model == "OpenPose" or args.model == "AlphaPose":

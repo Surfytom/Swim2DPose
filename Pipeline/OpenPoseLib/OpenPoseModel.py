@@ -55,7 +55,6 @@ def Inference(model, videoNames, stopAfterExecuting=True):
     
     if stopAfterExecuting == True:
         Stop(model)
-        
 
     return allKeyPoints
 

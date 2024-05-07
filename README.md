@@ -74,7 +74,8 @@ Only replace the path/to/folder/with/videos. Change nothing else unless you know
 
 ### Your First Command
 
-Now you are in the pipeline container you should be in the Swim2DPose directory. If your not please type ```cd /usr/src/app/Swim2DPose```.
+Now you are in the pipeline container you should be in the Swim2DPose directory. If your not please type  
+```cd /usr/src/app/Swim2DPose```.
 
 Now that your defintely in the Swim2DPose directory run the command below to use AlphaPose on the videos in your mounted folder:
 ```
