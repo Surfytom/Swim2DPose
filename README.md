@@ -117,7 +117,7 @@ Please consult the [AlphaPose readme](https://github.com/Surfytom/Swim2DPose/blo
 
 ![preview video](https://github.com/Surfytom/Swim2DPose/blob/main/docmedia/DivingOpenPose.gif)
 
-Please consult the [OpenPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/DWPoseLib/DWPoseREADME.md) for information on getting started with the library.
+Please consult the [OpenPose readme](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/OpenPoseLib/OpenPoseREADME.md) for information on getting started with the library.
 
 ## DWPose
 

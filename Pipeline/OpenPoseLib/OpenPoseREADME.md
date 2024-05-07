@@ -3,6 +3,10 @@
 The [OpenPose repository](https://github.com/CMU-Perceptual-Computing-Lab/openpose) has represented the first real-time multi-person system to jointly detect human body, hand, facial, and foot keypoints (in total 135 keypoints) on single images. 
 It is authored by Ginés Hidalgo, Zhe Cao, Tomas Simon, Shih-En Wei, Yaadhav Raaj, Hanbyul Joo, and Yaser Sheikh. It is maintained by Ginés Hidalgo and Yaadhav Raaj. OpenPose would not be possible without the CMU Panoptic Studio dataset. We would also like to thank all the people who have helped OpenPose in any way.
 
+# OpenPose installation
+
+Follow step by step installation guide within [Dockerfile](https://github.com/Surfytom/Swim2DPose/blob/main/PipeLine/OpenPoseLib/OpenPoseREADME.md)
+
 ## Using OpenPose
 
 To use OpenPose Run the following command within the pipeline container command line:
