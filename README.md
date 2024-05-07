@@ -139,11 +139,13 @@ Please consult the [YoloNasNet readme](https://github.com/Surfytom/Swim2DPose/bl
 
 The folder Evaluation contains an evaluation video generator which can take videos from a folder and randomly select frames within them resulting in a collage of random consecutive frames from a selection of videos. It is useful if you want to evaluate a pose model on different body types and locations quickly as you just have to run a model on one video instead of multiple.
 
-Using it is as simple as running the pipeline container. The running the following command:
+Using it is as simple as running the pipeline container. Then running the following command:
 
 ```
 python3 Evaluation/EvaluationDataGenerator.py -fo folder/to/videos -type mp4 -N 3 -K 10 -C 1 -D 1
 ```
+
+The output will be saved within the docker container under ```/usr/src/app/Swim2DPose/Evaluation```
 
 ```-type``` should be a video file type like ```avi``` or ```mp4```
 
