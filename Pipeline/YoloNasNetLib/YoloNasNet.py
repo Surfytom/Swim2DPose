@@ -90,7 +90,10 @@ def DrawKeypoints(inputStack, keyPointStack, bboxStack, selectedKeyPoints, strid
                             #print(f"{keyPointArray.poses[0][origin][:2].astype(np.uintp)} | {keyPointArray.poses[0][dest][:2].astype(np.uintp)} | {keyPointArray.edge_colors[k]}")
                             if isDrawn[origin] and isDrawn[dest]:
 
+                                origin = np.absolute(keyPointArray.poses[0][origin][:2]).astype(np.uintp)
+                                dest = np.absolute(keyPointArray.poses[0][dest][:2]).astype(np.uintp)
+
                                 #print(f"x, y: {x} {y} line before: {keyPointArray.poses[0][origin][:2].astype(np.uintp)} after : {[x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)} {type([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp))}")
-                                cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray.poses[0][origin][:2].astype(np.uintp)).astype(np.uintp), ([x, y] + keyPointArray.poses[0][dest][:2].astype(np.uintp)).astype(np.uintp), np.array(keyPointArray.edge_colors[k]).tolist(), 3)
+                                cv2.line(images[(j*stride)+p], ([x, y] + origin).astype(np.uintp), ([x, y] + dest).astype(np.uintp), np.array(keyPointArray.edge_colors[k]).tolist(), 3)
 
     return selectedKeyPoints

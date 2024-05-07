@@ -367,6 +367,11 @@ def GetLatestSavedVideos(path):
     return latest_modified.split('/')[-1]
 
 def CreateResultFolder(folderPath, poseModel):
+
+    if os.path.exists(f"{folderPath}") == False:
+        # Make results folder if it does not exist
+        os.mkdir(f"{folderPath}")
+
     if os.path.exists(f"{folderPath}/results") == False:
         # Make results folder if it does not exist
         os.mkdir(f"{folderPath}/results")

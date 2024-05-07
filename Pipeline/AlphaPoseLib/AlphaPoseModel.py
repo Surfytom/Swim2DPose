@@ -43,7 +43,7 @@ def LoadConfig(mountedPath):
         'auto_remove': True
     }
 
-def Inference(model, videoNames, stopAfterExecuting=True):
+def Inference(model, videoNames, saveFolder, stopAfterExecuting=True):
 
     allResultPaths = []
 
@@ -54,7 +54,7 @@ def Inference(model, videoNames, stopAfterExecuting=True):
 
         print(f"Video '{videoNameAndExt}' running through AlphaPose")
 
-        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/{videoNameAndExt}" --save_video --outdir "/usr/src/app/media/results/AlphaPose/{datestring}" --sp --vis_fast')
+        model.exec_run(cmd=f'python3 scripts/demo_inference.py --detector yolox-x --cfg configs/halpe_26/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint pretrained_models/halpe26_fast_res50_256x192.pth --video "/usr/src/app/media/{videoNameAndExt}" --save_video --outdir "{saveFolder}/results/AlphaPose/{datestring}" --sp --vis_fast')
         print(f"Video {videoNameAndExt} Finished")
 
         allResultPaths.append(f'/usr/src/app/media/results/AlphaPose/{videoNameAndExt}')

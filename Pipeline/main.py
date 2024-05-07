@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-fo', "--folder", help='Use this flag to specify input folder path')
+    parser.add_argument('-fo', "--folder", help="Use this flag to specify input folder path. Default is '/usr/src/app/media'")
     parser.add_argument('-i', "--inputpaths", nargs="+", help='Use this flag to specify input paths (can be multiple)')
     parser.add_argument('-msk', "--mask", help='if this flag is set masking based segmentation is used instead of bounding boxes', action='store_true', default=True)
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
@@ -67,12 +67,14 @@ if __name__ == "__main__":
 
     if args.model == "DWPose":
         import DWPoseLib.DwPose as poseModel
-    if args.model == "YoloNasNet":
+    elif args.model == "YoloNasNet":
         import YoloNasNetLib.YoloNasNet as poseModel
-    if args.model == "OpenPose":
+    elif args.model == "OpenPose":
         import OpenPoseLib.OpenPoseModel as poseModel
-    if args.model == "AlphaPose":
+    elif args.model == "AlphaPose":
         import AlphaPoseLib.AlphaPoseModel as poseModel
+    else:
+        raise ValueError(f"-m {args.model} is not a valid model name: Try DWPose, AlphaPose, OpenPose or YoloNasNet")
 
     print("GPU Available: ", cuda.is_available())
     
@@ -150,14 +152,15 @@ if __name__ == "__main__":
       #   drawText        : boolean value determining wether the function should draw the text for each keypoint on the image
       #   drawEdges        : boolean value determining wether the function should draw the edges between each keypoints
       selectedKeyPoints = poseModel.DrawKeypoints(imageStack, keyPoints, Bboxes, selectedPoints, args.stride, True, True, True)
+
+      utils.SaveImages(imageStack, args.fps, args.model, args.save)
      
     elif args.model == "OpenPose" or args.model == "AlphaPose":
-      # This function runs the model and gets a result in the format
-      # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
-      if args.model == "OpenPose": 
-        keyPoints = poseModel.Inference(model, fileNamesAndExtensions, args.saved)
-      else:
-        keyPoints = poseModel.Inference(model, fileNamesAndExtensions)
+        # This function runs the model and gets a result in the format
+        # Array of inputs (multiple videos) -> frames (from one video) -> array of keypoints (for one frame)
+
+        keyPoints = poseModel.Inference(model, fileNamesAndExtensions, args.save)
+
     if args.label and args.model == "DWPose":
 
       for i, input in enumerate(imageStack):

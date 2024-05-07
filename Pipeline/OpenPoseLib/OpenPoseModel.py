@@ -1,6 +1,6 @@
 import subprocess
 import docker
-import datetime
+from datetime import datetime
 import os
 
 client = docker.from_env()
@@ -38,20 +38,21 @@ def LoadConfig(args):
         'volumes_from': [client.pipelineContainerId],
         'stdin_open': True,  # Keep STDIN open even if not attached (-i)
         'tty': True,  # Allocate a pseudo-TTY (-t)
+        'auto_remove': True
     }
 
 def Inference(model, videoNames, folderPath, stopAfterExecuting=True):
 
     allKeyPoints = []
-    if os.path.exists(f'{folderPath}/OpenPose') == False:
+    if os.path.exists(f'{folderPath}/results/OpenPose') == False:
         # Make results folder if it does not exist
-        os.mkdir(f'{folderPath}/OpenPose')
+        os.mkdir(f'{folderPath}/results/OpenPose')
 
     dateTimeF = '{:%d-%m-%Y_%H-%M-%S}'.format(datetime.now())
 
-    if os.path.exists(f'{folderPath}/OpenPose/{dateTimeF}') == False:
+    if os.path.exists(f'{folderPath}/results/OpenPose/{dateTimeF}') == False:
         # Makes a new folder wtih the new highest run digit
-        os.mkdir(f"{folderPath}/OpenPose'/{dateTimeF}")
+        os.mkdir(f"{folderPath}/results/OpenPose/{dateTimeF}")
 
     for i, video in enumerate(videoNames):
         videoNameAndExt = video['name'] + video['ext']
@@ -59,9 +60,9 @@ def Inference(model, videoNames, folderPath, stopAfterExecuting=True):
         
         print(f"Video {videoNameAndExt} running through OpenPose")
         # Runs the model on a set of images returning the keypoints the model detects
-        model.exec_run(cmd=f'./build/examples/openpose/openpose.bin --video "/usr/src/app/media/{videoName}.mp4" --display 0 --hand --write_json "/usr/src/app/media/results/OpenPose/{dateTimeF}/{videoName}"  --write_video "/usr/src/app/media/results/OpenPose/{dateTimeF}/{videoName}.avi"')
-        print(f"Video /usr/src/app/media/results/OpenPose/{dateTimeF}/{videoName}.avi is ready")
-        print(f"Keypoints /usr/src/app/media/results/OpenPose/{dateTimeF}/{videoName}.json is ready")
+        model.exec_run(cmd=f'build/examples/openpose/openpose.bin --video "/usr/src/app/media/{videoNameAndExt}" --display 0 --hand --write_json "{folderPath}/results/OpenPose/{dateTimeF}/{videoName}" --write_video "/usr/src/app/media/results/OpenPose/{dateTimeF}/{videoName}.avi"')
+        print(f"Video {folderPath}/OpenPose/{dateTimeF}/{videoName}.avi is ready")
+        print(f"Keypoints {folderPath}/results/OpenPose/{dateTimeF}/{videoName}.json is ready")
 
     # allResultPaths.append(f'/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}')
     if stopAfterExecuting == True:
