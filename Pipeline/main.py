@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-fo', "--folder", help="Use this flag to specify input folder path. Default is '/usr/src/app/media'")
+    parser.add_argument('-fo', "--folder", help="Use this flag to specify input folder path. Default is '/usr/src/app/media'", default="/usr/src/app/media")
     parser.add_argument('-i', "--inputpaths", nargs="+", help='Use this flag to specify input paths (can be multiple)')
     parser.add_argument('-msk', "--mask", help='if this flag is set masking based segmentation is used instead of bounding boxes', action='store_true', default=True)
     parser.add_argument('-m', "--model", help="use either DWPose | AlphaPose | OpenPose | YoloNasNet", default="AlphaPose")
@@ -163,8 +163,8 @@ if __name__ == "__main__":
 
     if args.label and args.model == "DWPose":
 
-      for i, input in enumerate(imageStack):
-          if len(input) <= 1:
-            paths.remove(i)
-              
-      utils.SaveVideoAnnotationsToLabelBox(args, paths, selectedKeyPoints)
+        for i, input in enumerate(imageStack):
+            if len(input) <= 1:
+                paths.remove(i)
+                
+        utils.SaveVideoAnnotationsToLabelBox(args, paths, selectedKeyPoints)
