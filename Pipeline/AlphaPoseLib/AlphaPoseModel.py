@@ -95,9 +95,11 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
         keypointGroups = json.load(f)
     
     selectedPoints = keypointGroups["AlphaPose"]
-
+    keyPointArrayStack = []
     keypointResults = None
-    for i, path in enumerate(resultPaths): 
+    for i, path in enumerate(resultPaths):
+        images = inputStack[i]['images']
+        print('images: ', len(images)) 
         with open(f"{path}/alphapose-results.json", "r") as f:
             keypointResults = json.load(f)   
             for j, arrItem in enumerate(keypointResults):     
@@ -108,19 +110,17 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                 # Zeros the confidence score     
                 print("index: ", imageIdx, " keypoints: ", np.array(keyPointArray))
 
-                selectedKeyPoints = []
-                
-                images = inputStack[i]['images']
+                print('current imageIdx: ', imageIdx)
                 # keyPoints = keypointResults[i]
 
-                selectedKeyPoints.append([])
+                keyPointArrayStack.append([])
 
                 # for j in range(len(bboxes)):
 
                 # keyPointArray = keyPoints[j]
                 # box = bboxes[j]
 
-                selectedKeyPoints[i].append([])
+                keyPointArrayStack[i].append([])
 
                 x, y, x1, y1 = bboxes
 
@@ -147,7 +147,7 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                         if drawBboxes:
                             cv2.rectangle(images[imageIdx], (x, y), (x1, y1), (0, 0, 255), 2)
 
-                            selectedKeyPoints[i][j].append([(x+keyX), (y+keyY)])
+                            keyPointArrayStack[i][j].append([(x+keyX), (y+keyY)])
                         # colourGen = GetBGRColours()
 
                     # if drawEdges:
@@ -156,7 +156,7 @@ def DrawKeypoints(inputStack, resultPaths, bboxStack, stride=1, drawKeypoints=Tr
                     #             cv2.line(images[(j*stride)+p], ([x, y] + keyPointArray[selectedPoints[point1]]), ([x, y] + keyPointArray[selectedPoints[point2]]), next(colourGen), 3)        
                     
 
-    return selectedKeyPoints
+    return keyPointArrayStack
 
 
 def Stop(model):
