@@ -60,8 +60,8 @@ def Inference(model, videoNames, folderPath, stopAfterExecuting=True):
         
         print(f"Video {videoNameAndExt} running through OpenPose")
         # Runs the model on a set of images returning the keypoints the model detects
-        model.exec_run(cmd=f'build/examples/openpose/openpose.bin --video "/usr/src/app/media/{videoNameAndExt}" --display 0 --hand --write_json "{folderPath}/results/OpenPose/{dateTimeF}/{videoName}" --write_video "/usr/src/app/media/results/OpenPose/{dateTimeF}/{videoName}.avi"')
-        print(f"Video {folderPath}/OpenPose/{dateTimeF}/{videoName}.avi is ready")
+        model.exec_run(cmd=f'build/examples/openpose/openpose.bin --video "/usr/src/app/media/{videoNameAndExt}" --display 0 --hand --write_json "{folderPath}/results/OpenPose/{dateTimeF}/{videoName}" --write_video "{folderPath}/results/OpenPose/{dateTimeF}/{videoName}.avi"')
+        print(f"Video {folderPath}/results/OpenPose/{dateTimeF}/{videoName}.avi is ready")
         print(f"Keypoints {folderPath}/results/OpenPose/{dateTimeF}/{videoName}.json is ready")
 
     # allResultPaths.append(f'/usr/src/app/media/results/AlphaPose/{videosPath}/{videoName}')
