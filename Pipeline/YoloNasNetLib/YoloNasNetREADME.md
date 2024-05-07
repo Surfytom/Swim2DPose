@@ -21,7 +21,7 @@ The YoloNasNet config file within YoloNasNetLib allows you to adjust some model 
 To use YoloNasNet Run the following command within the pipeline container command line:
 
 ```
-python3 Pipeline/main.py -m YoloNasNet
+python3 Pipeline/main.py -m YoloNasNet -i path/to/video.mp4
 ```
 
 If you don't have the pipeline container installed please follow the setup guide in the main [readme](https://github.com/Surfytom/Swim2DPose/blob/main/README.md#pipeline).
