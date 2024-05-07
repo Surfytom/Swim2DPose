@@ -72,20 +72,32 @@ docker run -it --rm --name pipeline --gpus all -v "/path/to/folder/with/videos:/
 
 Only replace the path/to/folder/with/videos. Change nothing else unless you know what your doing.
 
-### Your First Command
+### Your First Commands
 
 Now you are in the pipeline container you should be in the Swim2DPose directory. If your not please type  
 ```cd /usr/src/app/Swim2DPose```.
 
 Now that your defintely in the Swim2DPose directory run the command below to use AlphaPose on the videos in your mounted folder:
 ```
-python3 Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s path/to/save/folder/within/mounted/folder
+python3 Pipeline/main.py -m AlphaPose
 ```
-```-m Alphapose``` tells the script to select AlphaPose as the pose model
 
-```-i path/to/video.mp4``` specifies a list of paths to media you want to process (this can be one or more media)
+This will save the results to the default location of ```/usr/src/app/media/results``` which is directly in your mounted folder. If  you want to save to a specific place **within your mounted folder** use the ```-s path/to/save/folder``` flag shown below:
 
-```-s``` saves the output videos to the specified folder. If no argument is passed videos will be saved to ```'/usr/src/app/media/results'``` which is the results folder in your mounted folder.
+```
+python3 Pipeline/main.py -m AlphaPose -s path/to/save/folder
+```
+
+This command will run inference on all the videos in the immediate directory of the mounted folder. If you want to target videos within a sub directorie of your mounted folder use the ```-fo path/to/folder/with/videos``` flag like so:
+
+```
+python3 Pipeline/main.py -m AlphaPose -fo path/to/videos -s path/to/save/folder
+```
+
+This command will target all compatible videos within the specified folder. If you only want to target a set of specific videos use the ```-i path/to/video1.mp4 path/to/video2.mp4``` flag like so:
+```
+python3 Pipeline/main.py -m AlphaPose -i path/to/video1.mp4 path/to/video2.mp4 -s path/to/save/folder
+```
 
 Consult [the pipeline read me](https://github.com/Surfytom/Swim2DPose/blob/main/Pipeline/PipelineREADME.md) for more information and all available configuration flags.
 

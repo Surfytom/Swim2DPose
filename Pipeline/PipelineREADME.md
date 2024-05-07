@@ -2,17 +2,19 @@
 
 This file introduces all the config options you can set when using this project such as flags in the command line arguments and config files for each model.
 
+It is **important** to note that all file paths passed as arguments should be prefaced by ```/usr/src/app/media``` to ensure you are targeting the mounted volume.
+
 ## Flags
 
 | <span style="display: inline-block; width:50px">Flag</span> | <div style="width:125px;">Arguments</div> | Description | Dependencies |
 | ------------- | ------------- | ------------- | ------------- |
 | <span style="display: inline-block; width:50px">```-m```</span> | <div style="width:125px;">ModelName</div> | Sets the pose model model to be used by the pipeline. Default is ```AlphaPose``` | None |
-| <span style="display: inline-block; width:50px">```-fo```</span> | <div style="width:125px;">Path/to/folder</div> | Sets a path to folder containing media files to process | ```No -i``` |
+| <span style="display: inline-block; width:50px">```-fo```</span> | <div style="width:125px;">Path/to/folder</div> | Sets a path to folder containing media files to process. Default is ```/usr/src/app/media``` aka your mounted volume folder | ```No -i``` |
 | <span style="display: inline-block; width:50px">```-i```</span> | <div style="width:125px;">Path/to/videoa.mp4 Path/to/videob.mp4</div> | Sets a path to individual media files to process | ```No -fo``` |
 | <span style="display: inline-block; width:50px">```-msk```</span> | <div style="width:125px;">No Args</div> | If set contour masks will be used instead of basic bounding boxes. Default is ```True``` | None |
 | <span style="display: inline-block; width:50px">```-fps```</span> | <div style="width:125px;">FpsYouWant</div> | Sets the frames per second of the output videos. Default is ```24``` | None |
 | <span style="display: inline-block; width:50px">```-str```</span> | <div style="width:125px;">StrideCount</div> | Sets the stride count for processing frames of videos. E.g 2 will mean only every 2nd frames gets processed. Default is ```1``` | None |
-| <span style="display: inline-block; width:50px">```-s```</span> | <div style="width:125px;">path/to/save/folder</div> | Sets the path you want processed media to be saved. Default is ```Pipeline/results``` | None |
+| <span style="display: inline-block; width:50px">```-s```</span> | <div style="width:125px;">path/to/save/folder</div> | Sets the path you want processed media to be saved. Default is ```/usr/src/app/media```. A results folder will get added to his path. | None |
 | <span style="display: inline-block; width:50px">```-l```</span> | <div style="width:125px;">No Args</div> | If set processed keypoints will be uploaded to a LabelBox project. Default is ```False``` | ```-lk, -lont, -lpn or -lpk, -ldn or -ldk``` |
 | <span style="display: inline-block; width:50px">```-lk```</span> | <div style="width:125px;">LabelBoxKey</div> | Sets your LabelBox api key | ```-l, -lont, -lpn or -lpk, -ldn or -ldk``` |
 | <span style="display: inline-block; width:50px">```-lont```</span> | <div style="width:125px;">OntologyKey</div> | Sets your LabelBox ontology key | ```-l, -lk, -lpn or -lpk, -ldn or -ldk``` |
