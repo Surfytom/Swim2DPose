@@ -24,8 +24,9 @@ Inside the docker:
 
 To use OpenPose Run the following command within the pipeline container command line:
 
-
+```.c
 python3 Pipeline/main.py -m OpenPose -s {path to the volume you want to mount into the container}
+```
 
 If you don't have the pipeline container installed please follow the setup guide in the main [readme](https://github.com/Surfytom/Swim2DPose/blob/main/README.md#pipeline).
 
