@@ -36,7 +36,7 @@ Before you pull the images **please make sure you have enough disk space availab
 
 ---
 
-#### Pipeline Docker Image (~10GB)
+#### Pipeline Docker Image (~18GB)
 
 Pull the pipeline Docker image from Docker Hub using this command:
 
@@ -49,11 +49,11 @@ Once this has been pulled you can follow the steps in the [pipeline](#pipeline) 
 
 The previous setup steps will only give you access to the pipeline, DWPose and YoloNasNet. To use AlphaPose and OpenPose please clone their respective images using the commands below:
 
-#### AlphaPose Docker Image (~12GB):
+#### AlphaPose Docker Image (~18GB):
 ```
 docker pull lhlong1/alphapose:latest
 ```
-#### OpenPose Docker Image (~10GB):
+#### OpenPose Docker Image (~20GB):
 ```
 docker pull lhlong1/openpose:latest
 ```
@@ -67,7 +67,7 @@ The pipeline is the central part of this repository. It offers a command line in
 
 If you have never run the pipeline container and it does not exist in your list of containers on Docker then run this command:
 ```
-docker run -it --rm --name pipeline --gpus all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" pipeline:latest
+docker run -it --rm --name pipeline --gpus all -v "/path/to/folder/with/videos:/usr/src/app/media" -v "//var/run/docker.sock://var/run/docker.sock" surfytom/pipeline:latest
 ```
 
 Only replace the path/to/folder/with/videos. Change nothing else unless you know what your doing.
